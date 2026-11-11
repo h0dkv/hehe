@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f0e5">
+  <title>Фенерите на Уилоумър</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: ui-rounded, "Avenir Next", Avenir, system-ui, sans-serif;
+      color: #384539;
+      background: #f5f0e5;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 50% 28%, rgba(255, 255, 255, .86), transparent 58%),
+        #f5f0e5;
+    }
+
+    button { font: inherit; }
+    .page { width: min(100% - 32px, 1020px); margin: 0 auto; padding: 22px 0 24px; }
+    .topbar, .brand, .town-status, .game-heading, .quest-title, .footer, .mobile-controls { display: flex; align-items: center; }
+    .topbar, .game-heading, .quest-title, .footer { justify-content: space-between; }
+    .topbar { margin-bottom: 17px; }
+    .brand { gap: 11px; }
+    .brand-mark {
+      display: grid;
+      width: 43px;
+      height: 43px;
+      place-items: center;
+      border: 1px solid #e6d7b6;
+      border-radius: 15px;
+      background: #fffaf0;
+      box-shadow: 0 5px 15px rgba(110, 93, 52, .08);
+      font-size: 23px;
+    }
+    .brand-name { margin: 0; color: #344435; font-size: 17px; font-weight: 780; letter-spacing: -.025em; }
+    .brand-tag { margin: 3px 0 0; color: #8a8b75; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+    .town-status {
+      gap: 8px;
+      padding: 9px 13px;
+      border: 1px solid #e6e0d2;
+      border-radius: 999px;
+      background: rgba(255, 253, 247, .78);
+      color: #747967;
+      font-size: 11px;
+    }
+    .sun-dot { width: 8px; height: 8px; border-radius: 50%; background: #eab75d; box-shadow: 0 0 0 4px #f8edda; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 20px; max-width: 920px; margin: auto; }
+    .main-column { min-width: 0; }
+    .game-heading { margin: 0 2px 9px; }
+    .game-heading h2 { margin: 0; font-size: 13px; font-weight: 700; }
+    .game-heading span { color: #92917e; font-size: 10px; }
+    .town-frame {
+      position: relative;
+      overflow: hidden;
+      border: 5px solid #fffdf7;
+      border-radius: 19px;
+      background: #b7cf9f;
+      box-shadow: 0 10px 32px rgba(85, 88, 59, .13), 0 0 0 1px #e6e0d2;
+      aspect-ratio: 3 / 2;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+    .dialog-backdrop {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-items: end;
+      padding: clamp(10px, 3vw, 22px);
+      background: linear-gradient(180deg, transparent 20%, rgba(39, 51, 41, .18));
+    }
+    .dialog-backdrop[hidden] { display: none; }
+    .dialog {
+      width: min(100%, 520px);
+      margin: 0 auto;
+      padding: 15px 17px 14px;
+      border: 1px solid rgba(255,255,255,.82);
+      border-radius: 15px;
+      background: rgba(255, 253, 247, .97);
+      box-shadow: 0 7px 25px rgba(49, 56, 42, .2);
+      animation: arrive .18s ease-out;
+    }
+    @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .dialog-name { margin: 0 0 5px; color: #60835f; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .dialog-text { margin: 0; color: #505749; font-size: 13px; line-height: 1.55; }
+    .dialog-options { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .choice-button {
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid #d6dfcb;
+      border-radius: 10px;
+      background: #f5f8ee;
+      color: #526e4d;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      transition: background .15s, transform .15s;
+    }
+    .choice-button:hover { transform: translateY(-1px); background: #eaf1df; }
+    button:focus-visible { outline: 3px solid #c39349; outline-offset: 2px; }
+    .interact-hint {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border: 1px solid rgba(255,255,255,.85);
+      border-radius: 999px;
+      background: rgba(255, 253, 247, .93);
+      box-shadow: 0 3px 10px rgba(45, 59, 39, .13);
+      color: #52644d;
+      font-size: 10px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .interact-hint[hidden] { display: none; }
+    .keycap { display: inline-grid; min-width: 19px; height: 19px; padding: 0 4px; place-items: center; border: 1px solid #dce1d4; border-radius: 6px; background: white; font-size: 9px; font-weight: 800; }
+    .mobile-controls { display: none; justify-content: space-between; align-items: end; gap: 14px; padding: 12px 3px 0; }
+    .dpad { display: grid; grid-template: repeat(2, 46px) / repeat(3, 46px); gap: 5px; }
+    .control-button {
+      display: grid;
+      width: 46px;
+      height: 46px;
+      place-items: center;
+      border: 1px solid #e3dccd;
+      border-radius: 11px;
+      background: #fffdf7;
+      box-shadow: 0 2px 0 #e7e0d3;
+      color: #58674f;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .control-button:active { transform: translateY(1px); box-shadow: none; background: #f0eddf; }
+    .control-button.up { grid-area: 1 / 2; }
+    .control-button.left { grid-area: 2 / 1; }
+    .control-button.down { grid-area: 2 / 2; }
+    .control-button.right { grid-area: 2 / 3; }
+    .control-button.action { width: 104px; height: 52px; border-radius: 15px; background: #728c63; color: white; font-size: 11px; font-weight: 750; }
+    .footer { margin: 9px 2px 0; color: #92917e; font-size: 10px; }
+    .footer strong { color: #6d775f; font-weight: 700; }
+    .quest-panel { padding-top: 31px; }
+    .quest-title { margin: 0 0 11px; }
+    .quest-title h2 { margin: 0; font-size: 13px; }
+    .quest-count { color: #8b8b77; font-size: 10px; }
+    .quest-card { padding: 13px; border: 1px solid #e7e0d2; border-radius: 14px; background: rgba(255, 253, 247, .76); }
+    .quest-card + .quest-card { margin-top: 8px; }
+    .quest-card.active { border-color: #e5d6b3; background: #fffaf0; }
+    .quest-card.done { background: rgba(239, 244, 230, .85); }
+    .quest-person { display: flex; align-items: center; gap: 9px; }
+    .person-icon { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 10px; background: #f1ebda; font-size: 16px; }
+    .quest-card.done .person-icon { background: #e1ead7; }
+    .person-name { color: #404b3e; font-size: 11px; font-weight: 750; }
+    .quest-state { margin-top: 2px; color: #95917e; font-size: 9px; }
+    .quest-description { margin: 9px 0 0; color: #777a6b; font-size: 10px; line-height: 1.55; }
+    .progress { height: 4px; margin-top: 9px; overflow: hidden; border-radius: 99px; background: #e9e3d6; }
+    .progress > span { display: block; height: 100%; border-radius: inherit; background: #91a87a; transition: width .2s; }
+    .town-note { margin: 13px 2px 0; color: #898a77; font-size: 10px; line-height: 1.6; }
+    .footer-bottom { max-width: 920px; margin: 19px auto 0; color: #a09d8b; font-size: 10px; text-align: center; }
+
+    @media (max-width: 740px) {
+      .page { width: min(100% - 24px, 560px); padding-top: 14px; }
+      .layout { display: block; }
+      .quest-panel { padding-top: 16px; }
+      .quest-panel > .quest-title { margin-bottom: 8px; }
+      .quest-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+      .quest-card, .quest-card + .quest-card { margin: 0; padding: 9px; }
+      .person-icon { width: 27px; height: 27px; font-size: 14px; }
+      .person-name { font-size: 10px; overflow-wrap: anywhere; }
+      .quest-description { font-size: 10px; overflow-wrap: anywhere; }
+      .mobile-controls { display: flex; }
+      .town-note { display: none; }
+      .footer-bottom { margin-top: 13px; }
+    }
+    @media (max-width: 430px) {
+      .page { width: calc(100% - 18px); padding-top: 10px; }
+      .brand { gap: 7px; }
+      .brand-mark { width: 36px; height: 36px; border-radius: 12px; font-size: 19px; }
+      .brand-name { font-size: 14px; }
+      .brand-tag { font-size: 8px; }
+      .town-status { gap: 6px; padding: 8px 9px; font-size: 9px; }
+      .sun-dot { width: 7px; height: 7px; }
+      .dialog { padding: 11px 12px; }
+      .dialog-text { font-size: 11px; }
+      .choice-button { min-height: 30px; padding: 6px 9px; font-size: 10px; }
+      .quest-state { font-size: 8px; overflow-wrap: anywhere; }
+      .town-status { max-width: 46%; text-align: center; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">🏮</div>
+        <div>
+          <p class="brand-name">Фенерите на Уилоумър</p>
+          <p class="brand-tag">Малка история за завръщането у дома</p>
+        </div>
+      </div>
+      <div class="town-status"><span class="sun-dot" aria-hidden="true"></span><span>Фестивална вечер · Късен следобед</span></div>
+    </header>
+
+    <div class="layout">
+      <section class="main-column" aria-label="Разгледай Уилоумър">
+        <div class="game-heading">
+          <h2>Село Уилоумър</h2>
+          <span id="location">Разгледай наоколо</span>
+        </div>
+        <div class="town-frame">
+          <canvas id="town" width="960" height="640" role="img" aria-label="Малко селце с пекарна, градина, езерце, съседи и фестивален площад. Разгледай със стрелките или с бутоните по-долу."></canvas>
+          <div class="interact-hint" id="hint" hidden><span class="keycap">E</span><span id="hint-text">Поздрави</span></div>
+          <div class="dialog-backdrop" id="dialog-backdrop" hidden>
+            <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-name" aria-describedby="dialog-text">
+              <p class="dialog-name" id="dialog-name"></p>
+              <p class="dialog-text" id="dialog-text"></p>
+              <div class="dialog-options" id="dialog-options"></div>
+            </section>
+          </div>
+        </div>
+        <div class="mobile-controls" aria-label="Управление с докосване">
+          <div class="dpad">
+            <button class="control-button up" data-key="ArrowUp" aria-label="Движение нагоре" type="button">▲</button>
+            <button class="control-button left" data-key="ArrowLeft" aria-label="Движение наляво" type="button">◀</button>
+            <button class="control-button down" data-key="ArrowDown" aria-label="Движение надолу" type="button">▼</button>
+            <button class="control-button right" data-key="ArrowRight" aria-label="Движение надясно" type="button">▶</button>
+          </div>
+          <button class="control-button action" id="interact-button" type="button">Говори / вземи</button>
+        </div>
+        <div class="footer"><span><strong>Движение:</strong> стрелки / WASD</span><span><strong>Действие:</strong> E или Space</span></div>
+      </section>
+
+      <aside class="quest-panel" aria-label="Подготовка за фестивала">
+        <div class="quest-title"><h2>Подготовка за фестивала</h2><span class="quest-count" id="quest-count">0 / 3</span></div>
+        <div class="quest-list">
+          <article class="quest-card" id="quest-milo">
+            <div class="quest-person"><span class="person-icon" aria-hidden="true">🥖</span><span><span class="person-name">Мило · Пекар</span><br><span class="quest-state" id="state-milo">Не е започнато</span></span></div>
+            <p class="quest-description" id="desc-milo">Намери Мило до пекарната. Може да има нужда от помощ.</p>
+            <div class="progress"><span id="progress-milo" style="width:0%"></span></div>
+          </article>
+          <article class="quest-card" id="quest-ivy">
+            <div class="quest-person"><span class="person-icon" aria-hidden="true">🌷</span><span><span class="person-name">Айви · Градинарка</span><br><span class="quest-state" id="state-ivy">Не е започнато</span></span></div>
+            <p class="quest-description" id="desc-ivy">Намери Айви в общинската градина.</p>
+          </article>
+          <article class="quest-card" id="quest-pip">
+            <div class="quest-person"><span class="person-icon" aria-hidden="true">🎻</span><span><span class="person-name">Пип · Музикант</span><br><span class="quest-state" id="state-pip">Не е започнато</span></span></div>
+            <p class="quest-description" id="desc-pip">Намери Пип до старата върба.</p>
+          </article>
+        </div>
+        <p class="town-note">Разходи се по пътеките, помогни на съседите и открий какво превръща едно място в дом.</p>
+      </aside>
+    </div>
+    <p class="footer-bottom">Малко приключение, направено с обич. Наслади му се със собствено темпо.</p>
+  </main>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("town");
+      const ctx = canvas.getContext("2d");
+      const hint = document.getElementById("hint");
+      const hintText = document.getElementById("hint-text");
+      const backdrop = document.getElementById("dialog-backdrop");
+      const dialogName = document.getElementById("dialog-name");
+      const dialogText = document.getElementById("dialog-text");
+      const dialogOptions = document.getElementById("dialog-options");
+      const keys = new Set();
+      const W = 960;
+      const H = 640;
+      const player = { x: 476, y: 465, speed: 205, facing: "down", walk: 0 };
+      const berries = [
+        { x: 330, y: 355, found: false },
+        { x: 404, y: 286, found: false },
+        { x: 625, y: 445, found: false }
+      ];
+      const quests = { milo: false, ivy: false, pip: false, miloStarted: false, festival: false };
+      const neighbors = [
+        { id: "milo", name: "Мило · Пекар", x: 229, y: 237, color: "#cb8663", hair: "#574238", emoji: "🥖", location: "До пекарната" },
+        { id: "ivy", name: "Айви · Градинарка", x: 708, y: 223, color: "#d18b9b", hair: "#5c6744", emoji: "🌷", location: "В градината" },
+        { id: "pip", name: "Пип · Музикант", x: 747, y: 453, color: "#8295ad", hair: "#544637", emoji: "🎻", location: "До върбата" }
+      ];
+      const buildings = [
+        { x: 95, y: 104, w: 190, h: 123, wall: "#e9c99a", roof: "#b86f58", sign: "ПЕКАРНА", icon: "🥐" },
+        { x: 646, y: 91, w: 180, h: 123, wall: "#e8d7a8", roof: "#85966e", sign: "ОБЩИНСКА ГРАДИНА", icon: "🌼" },
+        { x: 88, y: 418, w: 177, h: 112, wall: "#d6c6ad", roof: "#95846f", sign: "КНИЖАРНИЦА", icon: "📚" }
+      ];
+      const obstacles = buildings.map(({ x, y, w, h }) => ({ x: x - 3, y: y - 10, w: w + 6, h: h + 18 }));
+      const flowers = Array.from({ length: 44 }, (_, i) => ({
+        x: 18 + ((i * 197 + 47) % 924),
+        y: 18 + ((i * 113 + 89) % 604),
+        color: ["#f6d875", "#f2aeb0", "#fff3d4", "#c5a5d6"][i % 4]
+      }));
+      let activeDialog = false;
+      let nearby = null;
+      let lastTime = 0;
+
+      function roundedRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
+      function drawBuilding(building) {
+        const { x, y, w, h, wall, roof, sign, icon } = building;
+        ctx.fillStyle = "rgba(70, 87, 58, .12)";
+        roundedRect(x + 5, y + 8, w, h, 11);
+        ctx.fill();
+        ctx.fillStyle = wall;
+        roundedRect(x, y + 13, w, h - 13, 9);
+        ctx.fill();
+        ctx.fillStyle = roof;
+        ctx.beginPath();
+        ctx.moveTo(x - 9, y + 22);
+        ctx.lineTo(x + w / 2, y - 13);
+        ctx.lineTo(x + w + 9, y + 22);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "rgba(255, 250, 231, .75)";
+        roundedRect(x + 10, y + 28, w - 20, 17, 7);
+        ctx.fill();
+        ctx.fillStyle = "#5b5c48";
+        ctx.font = "700 8px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(sign, x + w / 2, y + 40);
+        ctx.fillStyle = "#fff2cc";
+        roundedRect(x + w / 2 - 16, y + h - 47, 32, 45, 8);
+        ctx.fill();
+        ctx.fillStyle = "rgba(91, 93, 68, .28)";
+        ctx.fillRect(x + w / 2, y + h - 47, 1.5, 45);
+        ctx.fillStyle = "rgba(255, 253, 237, .8)";
+        roundedRect(x + 19, y + 58, 31, 28, 5);
+        ctx.fill();
+        roundedRect(x + w - 50, y + 58, 31, 28, 5);
+        ctx.fill();
+        ctx.fillStyle = "#fff7e2";
+        ctx.font = "16px system-ui, sans-serif";
+        ctx.fillText(icon, x + w / 2, y + 67);
+      }
+
+      function drawTree(x, y, scale = 1) {
+        ctx.fillStyle = "rgba(69, 92, 54, .12)";
+        ctx.beginPath();
+        ctx.ellipse(x + 3, y + 22 * scale, 22 * scale, 8 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#866c50";
+        roundedRect(x - 4 * scale, y - 1 * scale, 8 * scale, 28 * scale, 4 * scale);
+        ctx.fill();
+        ctx.fillStyle = "#78946a";
+        ctx.beginPath();
+        ctx.arc(x, y - 13 * scale, 22 * scale, 0, Math.PI * 2);
+        ctx.arc(x - 14 * scale, y - 6 * scale, 14 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 14 * scale, y - 6 * scale, 14 * scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,.13)";
+        ctx.beginPath();
+        ctx.arc(x - 6 * scale, y - 20 * scale, 8 * scale, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawPaths() {
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#d8cba8";
+        ctx.lineWidth = 62;
+        ctx.beginPath();
+        ctx.moveTo(24, 321);
+        ctx.bezierCurveTo(228, 321, 302, 345, 478, 325);
+        ctx.bezierCurveTo(665, 304, 768, 322, 936, 320);
+        ctx.moveTo(478, 188);
+        ctx.bezierCurveTo(459, 282, 498, 364, 476, 470);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255, 247, 220, .48)";
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 11]);
+        ctx.beginPath();
+        ctx.moveTo(24, 321);
+        ctx.bezierCurveTo(228, 321, 302, 345, 478, 325);
+        ctx.bezierCurveTo(665, 304, 768, 322, 936, 320);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      function drawPond() {
+        ctx.fillStyle = "rgba(64, 107, 96, .12)";
+        ctx.beginPath();
+        ctx.ellipse(493, 414, 120, 61, -.08, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#83b9b0";
+        ctx.beginPath();
+        ctx.ellipse(490, 405, 116, 56, -.08, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(238, 251, 224, .52)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(476, 397, 79, 32, -.08, .3, 2.4);
+        ctx.stroke();
+        ctx.fillStyle = "#79946b";
+        [[380,390],[594,404],[409,451],[573,365]].forEach(([x,y]) => {
+          ctx.beginPath();
+          ctx.ellipse(x, y, 13, 5, -.4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(x + 5, y - 3, 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      function drawPerson(npc) {
+        const bob = Math.sin(npc.x + performance.now() / 460) * 1.5;
+        ctx.save();
+        ctx.translate(npc.x, npc.y + bob);
+        ctx.fillStyle = "rgba(59, 68, 46, .14)";
+        ctx.beginPath();
+        ctx.ellipse(0, 15, 15, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = npc.color;
+        roundedRect(-11, -9, 22, 24, 8);
+        ctx.fill();
+        ctx.fillStyle = "#f4d0b1";
+        ctx.beginPath();
+        ctx.arc(0, -17, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = npc.hair;
+        ctx.beginPath();
+        ctx.arc(0, -20, 10, Math.PI, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(-7, -16, 4, .5 * Math.PI, 1.5 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = "#4b5145";
+        ctx.beginPath();
+        ctx.arc(-3, -17, 1, 0, Math.PI * 2);
+        ctx.arc(3, -17, 1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        ctx.font = "700 10px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(255, 253, 247, .9)";
+        roundedRect(npc.x - 42, npc.y - 52, 84, 19, 8);
+        ctx.fill();
+        ctx.fillStyle = "#52614d";
+        ctx.fillText(npc.name.split(" · ")[0], npc.x, npc.y - 39);
+      }
+
+      function drawPlayer() {
+        const bob = Math.sin(player.walk * 13) * 1.8;
+        ctx.save();
+        ctx.translate(player.x, player.y + bob);
+        ctx.fillStyle = "rgba(56, 63, 45, .17)";
+        ctx.beginPath();
+        ctx.ellipse(0, 14, 14, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#6c8090";
+        roundedRect(-10, -9, 20, 23, 8);
+        ctx.fill();
+        ctx.fillStyle = "#f2c9a7";
+        ctx.beginPath();
+        ctx.arc(0, -17, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#59483c";
+        ctx.beginPath();
+        ctx.arc(0, -20, 10, Math.PI, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#4e5143";
+        ctx.beginPath();
+        ctx.arc(-3, -17, 1, 0, Math.PI * 2);
+        ctx.arc(3, -17, 1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawBerry(berry, index) {
+        if (berry.found) return;
+        const bob = Math.sin(performance.now() / 300 + index * 2) * 2;
+        ctx.fillStyle = "rgba(76, 80, 46, .15)";
+        ctx.beginPath();
+        ctx.ellipse(berry.x, berry.y + 5, 12, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#b8615d";
+        ctx.beginPath();
+        ctx.arc(berry.x, berry.y + bob, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#78946a";
+        ctx.beginPath();
+        ctx.ellipse(berry.x + 4, berry.y - 7 + bob, 5, 2, -.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawFestivalArch() {
+        const x = 432, y = 272;
+        ctx.fillStyle = "#8b7656";
+        roundedRect(x, y, 9, 48, 4); ctx.fill();
+        roundedRect(x + 88, y, 9, 48, 4); ctx.fill();
+        ctx.strokeStyle = "#8b7656";
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.arc(x + 48, y + 4, 45, Math.PI, 0);
+        ctx.stroke();
+        ctx.font = "20px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("🏮", x + 17, y + 5);
+        ctx.fillText("🏮", x + 80, y + 5);
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "#b8ce9e";
+        ctx.fillRect(0, 0, W, H);
+        flowers.forEach((flower, i) => {
+          if (flower.x > 310 && flower.x < 625 && flower.y > 260 && flower.y < 475) return;
+          ctx.globalAlpha = .72;
+          ctx.fillStyle = flower.color;
+          ctx.beginPath();
+          ctx.arc(flower.x, flower.y, i % 4 === 0 ? 2.4 : 1.7, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        drawPaths();
+        drawPond();
+        drawFestivalArch();
+        buildings.forEach(drawBuilding);
+        drawTree(316, 205, .88);
+        drawTree(616, 266, .75);
+        drawTree(322, 465, .9);
+        drawTree(852, 250, 1);
+        drawTree(880, 511, .92);
+        drawTree(58, 256, .8);
+        berries.forEach(drawBerry);
+        neighbors.forEach(drawPerson);
+        drawPlayer();
+      }
+
+      function blocked(x, y) {
+        if (x < 19 || x > W - 19 || y < 24 || y > H - 20) return true;
+        if (((x - 490) / 106) ** 2 + ((y - 405) / 49) ** 2 < 1) return true;
+        return obstacles.some(rect => x + 10 > rect.x && x - 10 < rect.x + rect.w && y + 11 > rect.y && y - 9 < rect.y + rect.h);
+      }
+
+      function getNearby() {
+        let closest = null;
+        let distance = 55;
+        for (const npc of neighbors) {
+          const d = Math.hypot(npc.x - player.x, npc.y - player.y);
+          if (d < distance) { closest = { type: "neighbor", item: npc }; distance = d; }
+        }
+        berries.forEach((berry, index) => {
+          if (berry.found) return;
+          const d = Math.hypot(berry.x - player.x, berry.y - player.y);
+          if (d < distance) { closest = { type: "berry", item: berry, index }; distance = d; }
+        });
+        if (quests.milo && quests.ivy && quests.pip && !quests.festival) {
+          const d = Math.hypot(480 - player.x, 294 - player.y);
+          if (d < distance) closest = { type: "festival", item: null };
+        }
+        return closest;
+      }
+
+      function showDialog(name, text, options) {
+        activeDialog = true;
+        hint.hidden = true;
+        dialogName.textContent = name;
+        dialogText.textContent = text;
+        dialogOptions.replaceChildren();
+        options.forEach(option => {
+          const button = document.createElement("button");
+          button.className = "choice-button";
+          button.type = "button";
+          button.textContent = option.label;
+          button.addEventListener("click", () => option.action());
+          dialogOptions.append(button);
+        });
+        backdrop.hidden = false;
+        const firstButton = dialogOptions.querySelector("button");
+        if (firstButton) firstButton.focus();
+      }
+
+      function closeDialog() {
+        activeDialog = false;
+        backdrop.hidden = true;
+        updateNearby();
+      }
+
+      function simpleDialog(name, text, buttonLabel = "Благодаря!") {
+        showDialog(name, text, [{ label: buttonLabel, action: closeDialog }]);
+      }
+
+      function talkToMilo() {
+        if (quests.milo) {
+          simpleDialog("Мило · Пекар", "От тези плодове стана чудесно сладко. Вземи едно малко бурканче за из път — моята рецепта за спомен от дома.", "Колко мило!");
+        } else if (!quests.miloStarted) {
+          showDialog("Мило · Пекар", "Здравей! Пека кифлички с плодове за фестивала на фенерите, но не ми стигат. Ще потърсиш ли още три по селските пътеки?", [
+            { label: "С удоволствие ще помогна", action: () => { quests.miloStarted = true; updateQuests(); simpleDialog("Мило · Пекар", "Чудесно! Плодовете се забелязват лесно край пътеките — приближи се до някой и натисни E.", "Тръгвам!") } },
+            { label: "Може би след малко", action: closeDialog }
+          ]);
+        } else if (berries.every(berry => berry.found)) {
+          quests.milo = true;
+          updateQuests();
+          simpleDialog("Мило · Пекар", "Три чудесни плодчета! Цялата пекарна ухае на лято. Благодаря ти, приятелю. Вземи си топла кифличка за из път.", "Ммм, благодаря!");
+        } else {
+          const count = berries.filter(berry => berry.found).length;
+          simpleDialog("Мило · Пекар", `Справяш се чудесно — намери ${count} от 3 плодчета. Потърси край пътеките и езерцето.`, "Ще продължа да търся");
+        }
+      }
+
+      function talkToIvy() {
+        if (quests.ivy) {
+          simpleDialog("Айви · Градинарка", "Цветята са готови, а сърцето ми също. Странно как един малък въпрос може да ти припомни кое е важно.", "Така си е");
+          return;
+        }
+        showDialog("Айви · Градинарка", "Подготвям разсад за тази вечер. Една малка градинска гатанка: от какво има нужда всяко семенце, за да покълне и порасне?", [
+          { label: "Малко слънчева светлина", action: () => { quests.ivy = true; updateQuests(); simpleDialog("Айви · Градинарка", "Точно така! И от малко доброта. Май имаш сърце на градинар.", "Радвам се, че се отбих") } },
+          { label: "От лъскаво камъче", action: () => simpleDialog("Айви · Градинарка", "Чудесно съкровище, но не съвсем. Помисли какво сгрява почвата в пролетна утрин.", "Нека помисля") },
+          { label: "От снежна буря", action: () => simpleDialog("Айви · Градинарка", "Градината ще е красива, но на разсада ще му е студено! Какво носи топлина?", "Още един опит") }
+        ]);
+      }
+
+      function talkToPip() {
+        if (quests.pip) {
+          simpleDialog("Пип · Музикант", "Вече намерих мелодията. Звучи ми като място, което познаваш наизуст, нали?", "Точно така");
+          return;
+        }
+        showDialog("Пип · Музикант", "Търся първата нота за песента тази вечер. Какво чуваш, когато си помислиш за дома?", [
+          { label: "Смях около масата", action: () => finishPip("laughter") },
+          { label: "Дъжд по покрива", action: () => finishPip("rain") },
+          { label: "Селската камбана по залез", action: () => finishPip("bell") }
+        ]);
+      }
+
+      function finishPip(memory) {
+        quests.pip = true;
+        quests.memory = memory;
+        updateQuests();
+        const reply = memory === "laughter" ? "Колко хубав звук, който да носиш със себе си. Мисля, че вече знам мелодията." : memory === "rain" ? "Толкова нежен ритъм. Мисля, че вече знам как трябва да започне песента." : "Познат звук, точно навреме. Песента сама ни намери.";
+        simpleDialog("Пип · Музикант", reply, "Нямам търпение да я чуя");
+      }
+
+      function startFestival() {
+        const memory = quests.memory;
+        const memoryText = memory === "laughter" ? "В пекарната на Мило се разнася смях, докато всички си поделят топли кифлички с плодове." : memory === "rain" ? "Пада тих дъжд и цялото село слуша заедно под върбата." : "Селската камбана зазвънява и познати лица се събират в светлината на фенерите.";
+        showDialog("Фестивалът на фенерите", "Всички фенери в Уилоумър греят. Селото вече ти се струва малко повече като дом. Как искаш да прекараш последните мигове на деня?", [
+          { label: "Да остана за приказките", action: () => finishFestival(`Оставаш под фенерите и разказваш истории до високо изгрялата луна. ${memoryText} Когато тръгваш, пътят напред вече не ти се струва толкова самотен.`) },
+          { label: "Тиха разходка край езерцето", action: () => finishFestival(`Разхождаш се край езерцето, където фенерите блещукат като паднали звезди. ${memoryText} Отнасяш със себе си тихата топлина на Уилоумър.`) }
+        ]);
+      }
+
+      function finishFestival(ending) {
+        quests.festival = true;
+        showDialog("Малко повече като у дома", ending, [
+          { label: "Да се поразходя още", action: closeDialog },
+          { label: "Нова история", action: restart }
+        ]);
+      }
+
+      function restart() {
+        quests.milo = false;
+        quests.ivy = false;
+        quests.pip = false;
+        quests.miloStarted = false;
+        quests.festival = false;
+        delete quests.memory;
+        berries.forEach(berry => { berry.found = false; });
+        player.x = 476;
+        player.y = 465;
+        updateQuests();
+        closeDialog();
+        simpleDialog("Нов следобед", "Фестивалът започва отново. Селските пътеки те очакват.", "Да тръгваме");
+      }
+
+      function interact() {
+        if (activeDialog) return;
+        nearby = getNearby();
+        if (!nearby) return;
+        if (nearby.type === "berry") {
+          nearby.item.found = true;
+          updateQuests();
+          simpleDialog("Шепа плодове", "Намери узряло плодче, още стоплено от следобедното слънце.", "В кошницата!");
+        } else if (nearby.type === "festival") {
+          startFestival();
+        } else if (nearby.item.id === "milo") {
+          talkToMilo();
+        } else if (nearby.item.id === "ivy") {
+          talkToIvy();
+        } else if (nearby.item.id === "pip") {
+          talkToPip();
+        }
+      }
+
+      function updateQuests() {
+        const done = [quests.milo, quests.ivy, quests.pip].filter(Boolean).length;
+        document.getElementById("quest-count").textContent = `${done} / 3`;
+        setQuest("milo", quests.milo, quests.miloStarted ? "В ход" : "Не е започнато",
+          quests.milo ? "Мило вече има всичко необходимо за фестивалните кифлички." :
+          quests.miloStarted ? `Намерени са ${berries.filter(berry => berry.found).length} от 3 плодчета · Говори с Мило, когато кошницата ти се напълни.` : "Намери Мило до пекарната. Може да има нужда от помощ.",
+          quests.milo ? 100 : quests.miloStarted ? berries.filter(berry => berry.found).length / 3 * 100 : 0);
+        setQuest("ivy", quests.ivy, quests.ivy ? "Готово" : "Не е започнато", quests.ivy ? "Реши градинската гатанка на Айви." : "Намери Айви в общинската градина.");
+        setQuest("pip", quests.pip, quests.pip ? "Готово" : "Не е започнато", quests.pip ? "Пип откри първата нота за фестивалната песен." : "Намери Пип до старата върба.");
+      }
+
+      function setQuest(id, done, state, description, progress = 0) {
+        document.getElementById(`quest-${id}`).classList.toggle("done", done);
+        document.getElementById(`quest-${id}`).classList.toggle("active", !done && state !== "Не е започнато");
+        document.getElementById(`state-${id}`).textContent = state;
+        document.getElementById(`desc-${id}`).textContent = description;
+        const bar = document.getElementById(`progress-${id}`);
+        if (bar) bar.style.width = `${progress}%`;
+      }
+
+      function updateNearby() {
+        nearby = getNearby();
+        if (activeDialog || !nearby) {
+          hint.hidden = true;
+          if (!activeDialog) document.getElementById("location").textContent = "Разгледай наоколо";
+          return;
+        }
+        hint.hidden = false;
+        if (nearby.type === "berry") hintText.textContent = "Вземи плодче";
+        else if (nearby.type === "festival") hintText.textContent = "Присъедини се към фестивала";
+        else hintText.textContent = `Говори с ${nearby.item.name.split(" · ")[0]}`;
+        if (nearby.type === "neighbor") document.getElementById("location").textContent = nearby.item.location;
+        else if (nearby.type === "festival") document.getElementById("location").textContent = "Фестивалният площад";
+        else if (nearby.type === "berry") document.getElementById("location").textContent = "По селската пътека";
+      }
+
+      function update(dt) {
+        if (activeDialog) return;
+        const dx = (keys.has("ArrowRight") || keys.has("d") || keys.has("D") ? 1 : 0) - (keys.has("ArrowLeft") || keys.has("a") || keys.has("A") ? 1 : 0);
+        const dy = (keys.has("ArrowDown") || keys.has("s") || keys.has("S") ? 1 : 0) - (keys.has("ArrowUp") || keys.has("w") || keys.has("W") ? 1 : 0);
+        if (dx || dy) {
+          const length = Math.hypot(dx, dy);
+          const moveX = dx / length * player.speed * dt;
+          const moveY = dy / length * player.speed * dt;
+          if (!blocked(player.x + moveX, player.y)) player.x += moveX;
+          if (!blocked(player.x, player.y + moveY)) player.y += moveY;
+          player.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+          player.walk += dt;
+        }
+        updateNearby();
+      }
+
+      function frame(now) {
+        const dt = Math.min((now - lastTime) / 1000, .04);
+        lastTime = now;
+        update(dt);
+        draw();
+        requestAnimationFrame(frame);
+      }
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+        draw();
+      }
+
+      window.addEventListener("keydown", event => {
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) event.preventDefault();
+        if ((event.key === "e" || event.key === "E" || event.key === " ") && !event.repeat) {
+          if (activeDialog) {
+            const button = dialogOptions.querySelector("button");
+            if (button) button.click();
+          } else interact();
+          return;
+        }
+        keys.add(event.key);
+      });
+      window.addEventListener("keyup", event => keys.delete(event.key));
+      window.addEventListener("blur", () => keys.clear());
+      document.querySelectorAll("[data-key]").forEach(button => {
+        const key = button.dataset.key;
+        button.addEventListener("pointerdown", event => { event.preventDefault(); keys.add(key); });
+        ["pointerup", "pointercancel", "pointerleave"].forEach(type => button.addEventListener(type, () => keys.delete(key)));
+      });
+      document.getElementById("interact-button").addEventListener("click", interact);
+      window.addEventListener("resize", resize);
+      updateQuests();
+      resize();
+      showDialog("Добре дошъл в Уилоумър", "Пристигна точно навреме за фестивала на фенерите. Разходи се из селото, запознай се със съседите и им помогни. Няма защо да бързаш.", [
+        { label: "Да разгледаме наоколо", action: closeDialog }
+      ]);
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
