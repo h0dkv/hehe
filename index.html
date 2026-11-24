@@ -1,808 +1,1267 @@
-<!doctype html>
-<html lang="bg">
+<!DOCTYPE html>
+<html lang="bg" class="scroll-smooth">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5f0e5">
-  <title>Фенерите на Уилоумър</title>
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: ui-rounded, "Avenir Next", Avenir, system-ui, sans-serif;
-      color: #384539;
-      background: #f5f0e5;
-      font-synthesis: none;
-      text-rendering: optimizeLegibility;
-      -webkit-font-smoothing: antialiased;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СТРИГАЛНИЦА | Модерна Бръснарница &amp; Мъжки Фризьорски Салон • Варна</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Oswald (заглавия) и Montserrat (основен текст) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Oswald:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome за икони -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    * { box-sizing: border-box; }
-    body {
-      min-width: 320px;
-      min-height: 100vh;
-      margin: 0;
-      background:
-        radial-gradient(ellipse at 50% 28%, rgba(255, 255, 255, .86), transparent 58%),
-        #f5f0e5;
-    }
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#121212',
+                        darkCard: '#1A1A1A',
+                        darkSurface: '#222222',
+                        goldPrimary: '#C89B3C',
+                        goldLight: '#D4AF37',
+                        goldDark: '#9E7826',
+                    },
+                    fontFamily: {
+                        heading: ['Oswald', 'sans-serif'],
+                        body: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
-    button { font: inherit; }
-    .page { width: min(100% - 32px, 1020px); margin: 0 auto; padding: 22px 0 24px; }
-    .topbar, .brand, .town-status, .game-heading, .quest-title, .footer, .mobile-controls { display: flex; align-items: center; }
-    .topbar, .game-heading, .quest-title, .footer { justify-content: space-between; }
-    .topbar { margin-bottom: 17px; }
-    .brand { gap: 11px; }
-    .brand-mark {
-      display: grid;
-      width: 43px;
-      height: 43px;
-      place-items: center;
-      border: 1px solid #e6d7b6;
-      border-radius: 15px;
-      background: #fffaf0;
-      box-shadow: 0 5px 15px rgba(110, 93, 52, .08);
-      font-size: 23px;
-    }
-    .brand-name { margin: 0; color: #344435; font-size: 17px; font-weight: 780; letter-spacing: -.025em; }
-    .brand-tag { margin: 3px 0 0; color: #8a8b75; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
-    .town-status {
-      gap: 8px;
-      padding: 9px 13px;
-      border: 1px solid #e6e0d2;
-      border-radius: 999px;
-      background: rgba(255, 253, 247, .78);
-      color: #747967;
-      font-size: 11px;
-    }
-    .sun-dot { width: 8px; height: 8px; border-radius: 50%; background: #eab75d; box-shadow: 0 0 0 4px #f8edda; }
-    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 20px; max-width: 920px; margin: auto; }
-    .main-column { min-width: 0; }
-    .game-heading { margin: 0 2px 9px; }
-    .game-heading h2 { margin: 0; font-size: 13px; font-weight: 700; }
-    .game-heading span { color: #92917e; font-size: 10px; }
-    .town-frame {
-      position: relative;
-      overflow: hidden;
-      border: 5px solid #fffdf7;
-      border-radius: 19px;
-      background: #b7cf9f;
-      box-shadow: 0 10px 32px rgba(85, 88, 59, .13), 0 0 0 1px #e6e0d2;
-      aspect-ratio: 3 / 2;
-    }
-    canvas { display: block; width: 100%; height: 100%; }
-    .dialog-backdrop {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      align-items: end;
-      padding: clamp(10px, 3vw, 22px);
-      background: linear-gradient(180deg, transparent 20%, rgba(39, 51, 41, .18));
-    }
-    .dialog-backdrop[hidden] { display: none; }
-    .dialog {
-      width: min(100%, 520px);
-      margin: 0 auto;
-      padding: 15px 17px 14px;
-      border: 1px solid rgba(255,255,255,.82);
-      border-radius: 15px;
-      background: rgba(255, 253, 247, .97);
-      box-shadow: 0 7px 25px rgba(49, 56, 42, .2);
-      animation: arrive .18s ease-out;
-    }
-    @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .dialog-name { margin: 0 0 5px; color: #60835f; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-    .dialog-text { margin: 0; color: #505749; font-size: 13px; line-height: 1.55; }
-    .dialog-options { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
-    .choice-button {
-      min-height: 34px;
-      padding: 7px 12px;
-      border: 1px solid #d6dfcb;
-      border-radius: 10px;
-      background: #f5f8ee;
-      color: #526e4d;
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 700;
-      transition: background .15s, transform .15s;
-    }
-    .choice-button:hover { transform: translateY(-1px); background: #eaf1df; }
-    button:focus-visible { outline: 3px solid #c39349; outline-offset: 2px; }
-    .interact-hint {
-      position: absolute;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 11px;
-      border: 1px solid rgba(255,255,255,.85);
-      border-radius: 999px;
-      background: rgba(255, 253, 247, .93);
-      box-shadow: 0 3px 10px rgba(45, 59, 39, .13);
-      color: #52644d;
-      font-size: 10px;
-      white-space: nowrap;
-      pointer-events: none;
-    }
-    .interact-hint[hidden] { display: none; }
-    .keycap { display: inline-grid; min-width: 19px; height: 19px; padding: 0 4px; place-items: center; border: 1px solid #dce1d4; border-radius: 6px; background: white; font-size: 9px; font-weight: 800; }
-    .mobile-controls { display: none; justify-content: space-between; align-items: end; gap: 14px; padding: 12px 3px 0; }
-    .dpad { display: grid; grid-template: repeat(2, 46px) / repeat(3, 46px); gap: 5px; }
-    .control-button {
-      display: grid;
-      width: 46px;
-      height: 46px;
-      place-items: center;
-      border: 1px solid #e3dccd;
-      border-radius: 11px;
-      background: #fffdf7;
-      box-shadow: 0 2px 0 #e7e0d3;
-      color: #58674f;
-      cursor: pointer;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .control-button:active { transform: translateY(1px); box-shadow: none; background: #f0eddf; }
-    .control-button.up { grid-area: 1 / 2; }
-    .control-button.left { grid-area: 2 / 1; }
-    .control-button.down { grid-area: 2 / 2; }
-    .control-button.right { grid-area: 2 / 3; }
-    .control-button.action { width: 104px; height: 52px; border-radius: 15px; background: #728c63; color: white; font-size: 11px; font-weight: 750; }
-    .footer { margin: 9px 2px 0; color: #92917e; font-size: 10px; }
-    .footer strong { color: #6d775f; font-weight: 700; }
-    .quest-panel { padding-top: 31px; }
-    .quest-title { margin: 0 0 11px; }
-    .quest-title h2 { margin: 0; font-size: 13px; }
-    .quest-count { color: #8b8b77; font-size: 10px; }
-    .quest-card { padding: 13px; border: 1px solid #e7e0d2; border-radius: 14px; background: rgba(255, 253, 247, .76); }
-    .quest-card + .quest-card { margin-top: 8px; }
-    .quest-card.active { border-color: #e5d6b3; background: #fffaf0; }
-    .quest-card.done { background: rgba(239, 244, 230, .85); }
-    .quest-person { display: flex; align-items: center; gap: 9px; }
-    .person-icon { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 10px; background: #f1ebda; font-size: 16px; }
-    .quest-card.done .person-icon { background: #e1ead7; }
-    .person-name { color: #404b3e; font-size: 11px; font-weight: 750; }
-    .quest-state { margin-top: 2px; color: #95917e; font-size: 9px; }
-    .quest-description { margin: 9px 0 0; color: #777a6b; font-size: 10px; line-height: 1.55; }
-    .progress { height: 4px; margin-top: 9px; overflow: hidden; border-radius: 99px; background: #e9e3d6; }
-    .progress > span { display: block; height: 100%; border-radius: inherit; background: #91a87a; transition: width .2s; }
-    .town-note { margin: 13px 2px 0; color: #898a77; font-size: 10px; line-height: 1.6; }
-    .footer-bottom { max-width: 920px; margin: 19px auto 0; color: #a09d8b; font-size: 10px; text-align: center; }
+    <style>
+        /* Фини персонализирани стилове и анимации */
+        html {
+            scroll-padding-top: 6rem;
+        }
 
-    @media (max-width: 740px) {
-      .page { width: min(100% - 24px, 560px); padding-top: 14px; }
-      .layout { display: block; }
-      .quest-panel { padding-top: 16px; }
-      .quest-panel > .quest-title { margin-bottom: 8px; }
-      .quest-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
-      .quest-card, .quest-card + .quest-card { margin: 0; padding: 9px; }
-      .person-icon { width: 27px; height: 27px; font-size: 14px; }
-      .person-name { font-size: 10px; overflow-wrap: anywhere; }
-      .quest-description { font-size: 10px; overflow-wrap: anywhere; }
-      .mobile-controls { display: flex; }
-      .town-note { display: none; }
-      .footer-bottom { margin-top: 13px; }
-    }
-    @media (max-width: 430px) {
-      .page { width: calc(100% - 18px); padding-top: 10px; }
-      .brand { gap: 7px; }
-      .brand-mark { width: 36px; height: 36px; border-radius: 12px; font-size: 19px; }
-      .brand-name { font-size: 14px; }
-      .brand-tag { font-size: 8px; }
-      .town-status { gap: 6px; padding: 8px 9px; font-size: 9px; }
-      .sun-dot { width: 7px; height: 7px; }
-      .dialog { padding: 11px 12px; }
-      .dialog-text { font-size: 11px; }
-      .choice-button { min-height: 30px; padding: 6px 9px; font-size: 10px; }
-      .quest-state { font-size: 8px; overflow-wrap: anywhere; }
-      .town-status { max-width: 46%; text-align: center; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
-    }
-  </style>
+        body {
+            background-color: #121212;
+            color: #F3F4F6;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+        }
+
+        button, a, input, select {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :focus-visible {
+            outline: 2px solid #D4AF37;
+            outline-offset: 3px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 50%, #C89B3C 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-btn {
+            background: linear-gradient(135deg, #D4AF37 0%, #C89B3C 100%);
+            transition: all 0.3s ease;
+        }
+
+        .gold-btn:hover {
+            background: linear-gradient(135deg, #E2BE47 0%, #D4AF37 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(200, 155, 60, 0.4);
+        }
+
+        .barber-pole-border {
+            background: repeating-linear-gradient(-45deg,
+                    #C89B3C,
+                    #C89B3C 8px,
+                    #1A1A1A 8px,
+                    #1A1A1A 16px);
+        }
+
+        /* Декоративна решетка за фона на Hero секцията */
+        .hero-pattern {
+            background-color: #121212;
+            background-image:
+                radial-gradient(circle at 75% 30%, rgba(200, 155, 60, 0.14) 0%, transparent 55%),
+                radial-gradient(circle at 15% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 45%),
+                linear-gradient(to bottom, rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0.98));
+        }
+
+        /* Анимация за модала */
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-animate {
+            animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .gallery-image {
+            transition: transform 700ms cubic-bezier(.2,.65,.25,1), opacity 300ms ease;
+        }
+
+        .group:hover .gallery-image {
+            transform: scale(1.055);
+        }
+    </style>
 </head>
-<body>
-  <main class="page">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">🏮</div>
-        <div>
-          <p class="brand-name">Фенерите на Уилоумър</p>
-          <p class="brand-tag">Малка история за завръщането у дома</p>
+
+<body class="antialiased selection:bg-goldPrimary selection:text-black">
+
+    <!-- 1. НАВИГАЦИЯ -->
+    <header class="sticky top-0 z-40 bg-darkBg/95 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Лого -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-goldPrimary/10 border border-goldPrimary/40 flex items-center justify-center text-goldLight group-hover:bg-goldPrimary group-hover:text-black transition-all duration-300">
+                        <!-- SVG Икона Ножица / Бръснач -->
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="6" cy="6" r="3" />
+                            <circle cx="6" cy="18" r="3" />
+                            <line x1="20" y1="4" x2="8.12" y2="15.88" />
+                            <line x1="14.47" y1="14.48" x2="20" y2="20" />
+                            <line x1="8.12" y1="8.12" x2="12" y2="12" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span
+                            class="font-heading text-2xl sm:text-3xl font-bold tracking-wider text-white block leading-none">СТРИГАЛНИЦА</span>
+                        <span class="text-[10px] uppercase tracking-[0.28em] text-goldLight font-medium">BARBERSHOP •
+                            ВАРНА</span>
+                    </div>
+                </a>
+
+                <!-- Десктоп меню -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#services"
+                        class="text-sm font-medium text-gray-300 hover:text-goldLight transition-colors uppercase tracking-wider">Услуги</a>
+                    <a href="#about"
+                        class="text-sm font-medium text-gray-300 hover:text-goldLight transition-colors uppercase tracking-wider">За
+                        нас</a>
+                    <a href="#gallery"
+                        class="text-sm font-medium text-gray-300 hover:text-goldLight transition-colors uppercase tracking-wider">Галерия</a>
+                    <a href="#reviews"
+                        class="text-sm font-medium text-gray-300 hover:text-goldLight transition-colors uppercase tracking-wider">Отзиви</a>
+                    <a href="#contacts"
+                        class="text-sm font-medium text-gray-300 hover:text-goldLight transition-colors uppercase tracking-wider">Контакти</a>
+                </nav>
+
+                <!-- CTA Бутон + Мобилно меню бутон -->
+                <div class="flex items-center gap-3">
+                    <button onclick="openBookingModal()"
+                        class="gold-btn text-black font-heading font-bold uppercase tracking-wider text-sm sm:text-base px-5 py-2.5 rounded-lg cursor-pointer shadow-lg">
+                        Запази час
+                    </button>
+                    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Отвори менюто"
+                        aria-controls="mobile-menu" aria-expanded="false"
+                        class="md:hidden p-2.5 rounded-lg bg-darkCard border border-white/10 text-gray-200 hover:text-goldLight">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="town-status"><span class="sun-dot" aria-hidden="true"></span><span>Фестивална вечер · Късен следобед</span></div>
+
+        <!-- Мобилно падащо меню -->
+        <div id="mobile-menu" class="hidden md:hidden bg-darkCard border-b border-white/10 px-4 pt-2 pb-5 space-y-2">
+            <a href="#services" onclick="toggleMobileMenu()"
+                class="block py-2.5 px-3 rounded-lg text-gray-200 hover:bg-darkSurface hover:text-goldLight font-medium">Услуги
+                и цени</a>
+            <a href="#about" onclick="toggleMobileMenu()"
+                class="block py-2.5 px-3 rounded-lg text-gray-200 hover:bg-darkSurface hover:text-goldLight font-medium">За
+                нас</a>
+            <a href="#gallery" onclick="toggleMobileMenu()"
+                class="block py-2.5 px-3 rounded-lg text-gray-200 hover:bg-darkSurface hover:text-goldLight font-medium">Галерия</a>
+            <a href="#reviews" onclick="toggleMobileMenu()"
+                class="block py-2.5 px-3 rounded-lg text-gray-200 hover:bg-darkSurface hover:text-goldLight font-medium">Отзиви
+                от клиенти</a>
+            <a href="#contacts" onclick="toggleMobileMenu()"
+                class="block py-2.5 px-3 rounded-lg text-gray-200 hover:bg-darkSurface hover:text-goldLight font-medium">Контакти
+                и адрес</a>
+        </div>
     </header>
 
-    <div class="layout">
-      <section class="main-column" aria-label="Разгледай Уилоумър">
-        <div class="game-heading">
-          <h2>Село Уилоумър</h2>
-          <span id="location">Разгледай наоколо</span>
+    <!-- 2. HERO СЕКЦИЯ -->
+    <section class="relative hero-pattern border-b border-white/10 overflow-hidden">
+        <!-- Декоративен елемент отдясно -->
+        <div
+            class="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-[520px] h-[520px] rounded-full border border-goldPrimary/15 pointer-events-none">
         </div>
-        <div class="town-frame">
-          <canvas id="town" width="960" height="640" role="img" aria-label="Малко селце с пекарна, градина, езерце, съседи и фестивален площад. Разгледай със стрелките или с бутоните по-долу."></canvas>
-          <div class="interact-hint" id="hint" hidden><span class="keycap">E</span><span id="hint-text">Поздрави</span></div>
-          <div class="dialog-backdrop" id="dialog-backdrop" hidden>
-            <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-name" aria-describedby="dialog-text">
-              <p class="dialog-name" id="dialog-name"></p>
-              <p class="dialog-text" id="dialog-text"></p>
-              <div class="dialog-options" id="dialog-options"></div>
-            </section>
-          </div>
+        <div
+            class="hidden lg:block absolute right-14 top-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-goldPrimary/10 pointer-events-none">
         </div>
-        <div class="mobile-controls" aria-label="Управление с докосване">
-          <div class="dpad">
-            <button class="control-button up" data-key="ArrowUp" aria-label="Движение нагоре" type="button">▲</button>
-            <button class="control-button left" data-key="ArrowLeft" aria-label="Движение наляво" type="button">◀</button>
-            <button class="control-button down" data-key="ArrowDown" aria-label="Движение надолу" type="button">▼</button>
-            <button class="control-button right" data-key="ArrowRight" aria-label="Движение надясно" type="button">▶</button>
-          </div>
-          <button class="control-button action" id="interact-button" type="button">Говори / вземи</button>
-        </div>
-        <div class="footer"><span><strong>Движение:</strong> стрелки / WASD</span><span><strong>Действие:</strong> E или Space</span></div>
-      </section>
 
-      <aside class="quest-panel" aria-label="Подготовка за фестивала">
-        <div class="quest-title"><h2>Подготовка за фестивала</h2><span class="quest-count" id="quest-count">0 / 3</span></div>
-        <div class="quest-list">
-          <article class="quest-card" id="quest-milo">
-            <div class="quest-person"><span class="person-icon" aria-hidden="true">🥖</span><span><span class="person-name">Мило · Пекар</span><br><span class="quest-state" id="state-milo">Не е започнато</span></span></div>
-            <p class="quest-description" id="desc-milo">Намери Мило до пекарната. Може да има нужда от помощ.</p>
-            <div class="progress"><span id="progress-milo" style="width:0%"></span></div>
-          </article>
-          <article class="quest-card" id="quest-ivy">
-            <div class="quest-person"><span class="person-icon" aria-hidden="true">🌷</span><span><span class="person-name">Айви · Градинарка</span><br><span class="quest-state" id="state-ivy">Не е започнато</span></span></div>
-            <p class="quest-description" id="desc-ivy">Намери Айви в общинската градина.</p>
-          </article>
-          <article class="quest-card" id="quest-pip">
-            <div class="quest-person"><span class="person-icon" aria-hidden="true">🎻</span><span><span class="person-name">Пип · Музикант</span><br><span class="quest-state" id="state-pip">Не е започнато</span></span></div>
-            <p class="quest-description" id="desc-pip">Намери Пип до старата върба.</p>
-          </article>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-28 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <!-- Лява колона: Основно послание -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div
+                        class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-darkCard border border-goldPrimary/30 text-goldLight text-xs font-semibold uppercase tracking-widest">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Варна • кв. Левски / Приморски</span>
+                    </div>
+
+                    <h1
+                        class="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold uppercase leading-[1.1] tracking-tight text-white">
+                        СТИЛ, ПРЕЦИЗНОСТ И ХАРАКТЕР <span class="gold-gradient-text">В СЪРЦЕТО НА ВАРНА</span>
+                    </h1>
+
+                    <p class="text-gray-300 text-base sm:text-lg max-w-2xl leading-relaxed font-light">
+                        Добре дошли в <strong class="text-white font-semibold">СТРИГАЛНИЦА</strong> — мястото, където
+                        класическият мъжки бръснарски занаят среща съвременната визия. Без излишна суета, с внимание към
+                        всеки детайл и уважение към твоето време.
+                    </p>
+
+                    <!-- Бутони за действие -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                        <button onclick="openBookingModal()"
+                            class="gold-btn text-black font-heading font-bold uppercase tracking-wider text-base sm:text-lg px-8 py-4 rounded-xl cursor-pointer flex items-center justify-center gap-3">
+                            <i class="fa-regular fa-calendar-check text-xl"></i>
+                            <span>Запази час онлайн</span>
+                        </button>
+                        <a href="#services"
+                            class="px-8 py-4 rounded-xl bg-darkCard hover:bg-darkSurface border border-white/15 text-white font-heading font-semibold uppercase tracking-wider text-base sm:text-lg transition-all flex items-center justify-center gap-2">
+                            <span>Разгледай услугите</span>
+                            <i class="fa-solid fa-arrow-down text-goldLight text-sm"></i>
+                        </a>
+                    </div>
+
+                    <!-- Бърза информация за адрес и работно време -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-white/10">
+                        <div class="flex items-start gap-3.5">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-darkCard border border-goldPrimary/30 flex items-center justify-center text-goldLight shrink-0 mt-0.5">
+                                <i class="fa-solid fa-map-pin"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase tracking-wider text-gray-400">Адрес на салона</p>
+                                <p class="text-sm font-semibold text-white">ул. „Д-р Анастасия Желязкова“ 11</p>
+                                <p class="text-xs text-gray-400">кв. Левски, гр. Варна</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3.5">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-darkCard border border-goldPrimary/30 flex items-center justify-center text-goldLight shrink-0 mt-0.5">
+                                <i class="fa-regular fa-clock"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase tracking-wider text-gray-400">Работно време</p>
+                                <p class="text-sm font-semibold text-white">Вторник – Неделя: 09:00 – 19:00 ч.</p>
+                                <p class="text-xs text-goldLight">Понеделник: Почивен ден</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Дясна колона: Стилизирана витринна карта на салона -->
+                <div class="lg:col-span-5">
+                    <div class="relative rounded-2xl bg-darkCard border border-goldPrimary/30 p-6 sm:p-8 shadow-2xl">
+                        <div class="h-1.5 w-full barber-pole-border rounded-full mb-6"></div>
+
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <span class="text-xs uppercase tracking-widest text-goldLight font-semibold">Атмосфера
+                                    &amp; Занаят</span>
+                                <h2 class="font-heading text-2xl font-bold text-white uppercase mt-1">Майсторско
+                                    отношение</h2>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex items-center gap-1 text-goldLight text-sm">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                </div>
+                                <span class="text-xs text-gray-400">5.0 в Google отзиви</span>
+                            </div>
+                        </div>
+
+                        <!-- Визуал на салона -->
+                        <div class="relative rounded-xl border border-white/10 mb-6 overflow-hidden aspect-[4/3]">
+                            <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=85"
+                                alt="Барбер подстригва клиент в СТРИГАЛНИЦА"
+                                class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"></div>
+                            <div class="absolute bottom-4 left-5 right-5">
+                                <p class="font-heading text-lg uppercase tracking-wider text-white">СТРИГАЛНИЦА</p>
+                                <p class="text-xs text-goldLight uppercase tracking-[0.2em] mt-1">Barber craft • Varna</p>
+                            </div>
+                        </div>
+
+                        <!-- Бързи предимства в картата -->
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div class="p-3 rounded-xl bg-darkSurface/80 border border-white/5">
+                                <p class="font-heading text-xl font-bold text-goldLight">30-50</p>
+                                <p class="text-[11px] text-gray-400 uppercase">Мин. на процедура</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-darkSurface/80 border border-white/5">
+                                <p class="font-heading text-xl font-bold text-goldLight">100%</p>
+                                <p class="text-[11px] text-gray-400 uppercase">Премиум козметика</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-darkSurface/80 border border-white/5">
+                                <p class="font-heading text-xl font-bold text-goldLight">24/7</p>
+                                <p class="text-[11px] text-gray-400 uppercase">Онлайн записване</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <p class="town-note">Разходи се по пътеките, помогни на съседите и открий какво превръща едно място в дом.</p>
-      </aside>
+    </section>
+
+    <!-- 3. УСЛУГИ И ЦЕНОРАЗПИС -->
+    <section id="services" class="py-20 bg-darkBg border-b border-white/10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Заглавие на секцията -->
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span class="text-goldLight text-xs font-bold uppercase tracking-[0.25em]">Меню с услуги</span>
+                <h2 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold uppercase text-white mt-2">
+                    УСЛУГИ И <span class="gold-gradient-text">ЦЕНОРАЗПИС</span>
+                </h2>
+                <p class="text-gray-400 text-sm sm:text-base mt-3">
+                    Изберете желаната услуга и запазете своя час с един клик. Всяка процедура включва консултация и
+                    финален стайлинг.
+                </p>
+            </div>
+
+            <!-- Филтър табове (интерактивни) -->
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10">
+                <button onclick="filterServices('all')" id="tab-all"
+                    class="service-tab active px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold uppercase tracking-wider transition-all bg-goldPrimary text-black cursor-pointer">
+                    Всички услуги (5)
+                </button>
+                <button onclick="filterServices('hair')" id="tab-hair"
+                    class="service-tab px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold uppercase tracking-wider transition-all bg-darkCard text-gray-300 hover:text-white border border-white/10 cursor-pointer">
+                    Коса
+                </button>
+                <button onclick="filterServices('beard')" id="tab-beard"
+                    class="service-tab px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold uppercase tracking-wider transition-all bg-darkCard text-gray-300 hover:text-white border border-white/10 cursor-pointer">
+                    Брада &amp; Бръснене
+                </button>
+                <button onclick="filterServices('combo')" id="tab-combo"
+                    class="service-tab px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold uppercase tracking-wider transition-all bg-darkCard text-gray-300 hover:text-white border border-white/10 cursor-pointer">
+                    Комбо пакети
+                </button>
+            </div>
+
+            <!-- Списък с услуги (генерира се динамично чрез JS за лесна поддръжка и резервация) -->
+            <div id="services-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Картите ще се рендират автоматично от скрипта -->
+            </div>
+
+            <!-- Бележка под ценоразписа -->
+            <div
+                class="mt-8 p-4 rounded-xl bg-darkCard/60 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-circle-info text-goldLight text-lg"></i>
+                    <span>Всички услуги включват измиване на косата с професионален шампоан и оформяне с висок клас
+                        продукти.</span>
+                </div>
+                <button onclick="openBookingModal()"
+                    class="text-goldLight hover:underline font-semibold whitespace-nowrap cursor-pointer">
+                    Запази директно час →
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. ЗА НАС / ПРЕДИМСТВА -->
+    <section id="about" class="py-20 bg-darkCard/40 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-14">
+                <span class="text-goldLight text-xs font-bold uppercase tracking-[0.25em]">Защо СТРИГАЛНИЦА</span>
+                <h2 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold uppercase text-white mt-2">
+                    ПОВЕЧЕ ОТ ОБИКНОВЕНО <span class="gold-gradient-text">ПОДСТРИГВАНЕ</span>
+                </h2>
+                <p class="text-gray-400 text-sm sm:text-base mt-3">
+                    Създадохме пространство във Варна, в което всеки мъж може да се отпусне и да получи визия,
+                    съобразена изцяло с неговия стил.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Предимство 1 -->
+                <div
+                    class="p-8 rounded-2xl bg-darkCard border border-white/10 hover:border-goldPrimary/50 transition-all group">
+                    <div
+                        class="w-14 h-14 rounded-xl bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-goldLight text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <h3 class="font-heading text-2xl font-bold uppercase text-white mb-3">Индивидуален подход</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Не работим по шаблон. Всяко подстригване започва с кратка консултация спрямо формата на главата,
+                        структурата на косъма и ежедневния ти ритъм.
+                    </p>
+                </div>
+
+                <!-- Предимство 2 -->
+                <div
+                    class="p-8 rounded-2xl bg-darkCard border border-white/10 hover:border-goldPrimary/50 transition-all group">
+                    <div
+                        class="w-14 h-14 rounded-xl bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-goldLight text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-pump-soap"></i>
+                    </div>
+                    <h3 class="font-heading text-2xl font-bold uppercase text-white mb-3">Висок клас козметика</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Използваме доказани професионални бръснарски марки за грижа за косата, брадата и кожата — масла,
+                        балсами, помади и аромати за топла кърпа.
+                    </p>
+                </div>
+
+                <!-- Предимство 3 -->
+                <div
+                    class="p-8 rounded-2xl bg-darkCard border border-white/10 hover:border-goldPrimary/50 transition-all group">
+                    <div
+                        class="w-14 h-14 rounded-xl bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-goldLight text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                    </div>
+                    <h3 class="font-heading text-2xl font-bold uppercase text-white mb-3">Удобна локация в кв. Левски
+                    </h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Намираме се на тиха и леснодостъпна улица (ул. „Д-р Анастасия Желязкова“ 11) с бърз достъп от
+                        бул. „Левски“ и Морската градина.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. ГАЛЕРИЯ -->
+    <section id="gallery" class="py-20 bg-darkBg border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                <div>
+                    <span class="text-goldLight text-xs font-bold uppercase tracking-[0.25em]">Портфолио &amp;
+                        Атмосфера</span>
+                    <h2 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold uppercase text-white mt-2">
+                        НАШАТА <span class="gold-gradient-text">РАБОТА И САЛОН</span>
+                    </h2>
+                </div>
+                <p class="text-gray-400 text-sm max-w-md">
+                    Поглед отблизо към детайлите — прецизен fade, класически контур и уютната обстановка в СТРИГАЛНИЦА.
+                </p>
+            </div>
+
+            <!-- Галерия Grid с визуални карти и hover ефекти -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Елемент 1 -->
+                <div class="group relative rounded-2xl overflow-hidden bg-darkCard border border-white/10 aspect-[4/3] cursor-pointer"
+                    onclick="openBookingModal('Мъжко подстригване')">
+                    <img src="https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=900&q=85"
+                        alt="Мъжко подстригване Skin Fade"
+                        class="gallery-image w-full h-full object-cover opacity-90">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-6">
+                        <span class="text-xs uppercase tracking-widest text-goldLight font-semibold">Подстригване</span>
+                        <h3 class="font-heading text-xl font-bold text-white uppercase mt-1">Модерен Skin Fade</h3>
+                        <p class="text-xs text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Прецизен преход и текстуриране на горната част.</p>
+                    </div>
+                </div>
+
+                <!-- Елемент 2 -->
+                <div class="group relative rounded-2xl overflow-hidden bg-darkCard border border-white/10 aspect-[4/3] cursor-pointer"
+                    onclick="openBookingModal('Оформяне и поддръжка на брада с топла кърпа')">
+                    <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=900&q=85"
+                        alt="Оформяне на брада с топла кърпа"
+                        class="gallery-image w-full h-full object-cover opacity-90">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-6">
+                        <span class="text-xs uppercase tracking-widest text-goldLight font-semibold">Грижа за
+                            брада</span>
+                        <h3 class="font-heading text-xl font-bold text-white uppercase mt-1">Оформяне с топла кърпа</h3>
+                        <p class="text-xs text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Чист
+                            контур с бръснач и подхранващо масло.</p>
+                    </div>
+                </div>
+
+                <!-- Елемент 3 -->
+                <div class="group relative rounded-2xl overflow-hidden bg-darkCard border border-white/10 aspect-[4/3] cursor-pointer"
+                    onclick="openBookingModal('Комбо: Коса + Брада')">
+                    <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=900&q=85"
+                        alt="Класическа мъжка визия"
+                        class="gallery-image w-full h-full object-cover opacity-90">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-6">
+                        <span class="text-xs uppercase tracking-widest text-goldLight font-semibold">Пълна визия</span>
+                        <h3 class="font-heading text-xl font-bold text-white uppercase mt-1">Класически джентълмен</h3>
+                        <p class="text-xs text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Хармония между прическа и симетрична брада.</p>
+                    </div>
+                </div>
+
+                <!-- Елемент 4 -->
+                <div class="group relative rounded-2xl overflow-hidden bg-darkCard border border-white/10 aspect-[4/3]">
+                    <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=900&q=85"
+                        alt="Интериор на СТРИГАЛНИЦА Варна"
+                        class="gallery-image w-full h-full object-cover opacity-90">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-6">
+                        <span class="text-xs uppercase tracking-widest text-goldLight font-semibold">Интериор</span>
+                        <h3 class="font-heading text-xl font-bold text-white uppercase mt-1">Комфорт и мъжка атмосфера
+                        </h3>
+                        <p class="text-xs text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Ергономични столове, добра музика и чаша кафе.</p>
+                    </div>
+                </div>
+
+                <!-- Елемент 5 -->
+                <div class="group relative rounded-2xl overflow-hidden bg-darkCard border border-white/10 aspect-[4/3] cursor-pointer"
+                    onclick="openBookingModal('Кралско бръснене с бръснач и пара')">
+                    <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=900&q=85"
+                        alt="Кралско бръснене"
+                        class="gallery-image w-full h-full object-cover opacity-90">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-6">
+                        <span class="text-xs uppercase tracking-widest text-goldLight font-semibold">Ритуал</span>
+                        <h3 class="font-heading text-xl font-bold text-white uppercase mt-1">Кралско бръснене</h3>
+                        <p class="text-xs text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Традиционен ритуал с пара и успокояващ балсам.</p>
+                    </div>
+                </div>
+
+                <!-- Елемент 6 -->
+                <div class="group relative rounded-2xl overflow-hidden bg-darkCard border border-white/10 aspect-[4/3]">
+                    <img src="https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=900&q=85"
+                        alt="Професионални инструменти"
+                        class="gallery-image w-full h-full object-cover opacity-90">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-6">
+                        <span class="text-xs uppercase tracking-widest text-goldLight font-semibold">Детайли</span>
+                        <h3 class="font-heading text-xl font-bold text-white uppercase mt-1">Безупречна хигиена</h3>
+                        <p class="text-xs text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Стерилизирани инструменти след всеки клиент.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. ОТЗИВИ ОТ КЛИЕНТИ -->
+    <section id="reviews" class="py-20 bg-darkCard/40 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-14">
+                <span class="text-goldLight text-xs font-bold uppercase tracking-[0.25em]">Доверие от клиентите</span>
+                <h2 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold uppercase text-white mt-2">
+                    КАКВО КАЗВАТ <span class="gold-gradient-text">КЛИЕНТИТЕ НИ</span>
+                </h2>
+                <p class="text-gray-400 text-sm sm:text-base mt-3">
+                    Реални впечатления от мъже във Варна, които вече се довериха на СТРИГАЛНИЦА.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Отзив 1 -->
+                <div class="p-7 rounded-2xl bg-darkCard border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex text-goldLight text-sm gap-1">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                    class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                    class="fa-solid fa-star"></i>
+                            </div>
+                            <span class="text-xs text-gray-500">Google Отзив</span>
+                        </div>
+                        <p class="text-gray-300 text-sm leading-relaxed italic">
+                            „Страхотно отношение и много прецизна работа! За първи път в кв. Левски попадам на място,
+                            където те изслушват какво точно искаш и резултатът е топ. Препоръчвам комбото коса + брада.“
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 mt-6 pt-4 border-t border-white/10">
+                        <div
+                            class="w-10 h-10 rounded-full bg-goldPrimary/20 text-goldLight font-heading font-bold flex items-center justify-center">
+                            ГД</div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">Георги Димитров</p>
+                            <p class="text-xs text-gray-400">Редовен клиент • Варна</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Отзив 2 -->
+                <div class="p-7 rounded-2xl bg-darkCard border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex text-goldLight text-sm gap-1">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                    class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                    class="fa-solid fa-star"></i>
+                            </div>
+                            <span class="text-xs text-gray-500">Google Отзив</span>
+                        </div>
+                        <p class="text-gray-300 text-sm leading-relaxed italic">
+                            „Много чисто, стилно и спокойно място. Никакво чакане, когато си запазил час, а ритуалът с
+                            топлата кърпа за брадата е истински релакс след работа. Определено се връщам!“
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 mt-6 pt-4 border-t border-white/10">
+                        <div
+                            class="w-10 h-10 rounded-full bg-goldPrimary/20 text-goldLight font-heading font-bold flex items-center justify-center">
+                            НК</div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">Николай Колев</p>
+                            <p class="text-xs text-gray-400">кв. Левски, Варна</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Отзив 3 -->
+                <div class="p-7 rounded-2xl bg-darkCard border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex text-goldLight text-sm gap-1">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                    class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                    class="fa-solid fa-star"></i>
+                            </div>
+                            <span class="text-xs text-gray-500">Google Отзив</span>
+                        </div>
+                        <p class="text-gray-300 text-sm leading-relaxed italic">
+                            „Водя и сина ми за детско подстригване — много търпелив и професионален подход. И двамата
+                            излизаме с перфектни прически и страхотно настроение.“
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 mt-6 pt-4 border-t border-white/10">
+                        <div
+                            class="w-10 h-10 rounded-full bg-goldPrimary/20 text-goldLight font-heading font-bold flex items-center justify-center">
+                            МС</div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">Мартин Стоянов</p>
+                            <p class="text-xs text-gray-400">кв. Приморски, Варна</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. КОНТАКТИ И ЛОКАЦИЯ -->
+    <section id="contacts" class="py-20 bg-darkBg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+                <!-- Информация за контакт -->
+                <div class="lg:col-span-5 flex flex-col justify-between space-y-6">
+                    <div>
+                        <span class="text-goldLight text-xs font-bold uppercase tracking-[0.25em]">Контакти &amp;
+                            Локация</span>
+                        <h2 class="font-heading text-3xl sm:text-4xl font-bold uppercase text-white mt-2">
+                            ЕЛА В <span class="gold-gradient-text">СТРИГАЛНИЦА</span>
+                        </h2>
+                        <p class="text-gray-400 text-sm mt-3 leading-relaxed">
+                            Запази своя час онлайн за секунди или ни се обади директно по телефона. Очакваме те във
+                            Варна!
+                        </p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Адрес -->
+                        <div class="p-4 rounded-xl bg-darkCard border border-white/10 flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 rounded-lg bg-goldPrimary/15 text-goldLight flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-location-dot text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-heading text-base uppercase text-white tracking-wide">Адрес</h3>
+                                <p class="text-sm text-gray-300 mt-0.5">ул. „Доктор Анастасия Желязкова“ 11</p>
+                                <p class="text-xs text-gray-400">кв. Левски / Приморски, 9010 Варна</p>
+                            </div>
+                        </div>
+
+                        <!-- Работно време -->
+                        <div class="p-4 rounded-xl bg-darkCard border border-white/10 flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 rounded-lg bg-goldPrimary/15 text-goldLight flex items-center justify-center shrink-0">
+                                <i class="fa-regular fa-clock text-lg"></i>
+                            </div>
+                            <div class="w-full">
+                                <h3 class="font-heading text-base uppercase text-white tracking-wide">Работно време</h3>
+                                <div class="flex justify-between text-sm text-gray-300 mt-1">
+                                    <span>Вторник – Неделя:</span>
+                                    <span class="font-semibold text-white">09:00 – 19:00 ч.</span>
+                                </div>
+                                <div class="flex justify-between text-sm text-gray-400 mt-0.5">
+                                    <span>Понеделник:</span>
+                                    <span class="text-goldLight font-medium">Почивен ден</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Телефон за директно обаждане -->
+                        <div class="p-4 rounded-xl bg-darkCard border border-white/10 flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 rounded-lg bg-goldPrimary/15 text-goldLight flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-phone text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-heading text-base uppercase text-white tracking-wide">Телефон за връзка
+                                </h3>
+                                <a href="tel:+359888000000"
+                                    class="text-lg font-bold text-goldLight hover:underline block mt-0.5">
+                                    +359 888 000 000 <span class="text-xs font-normal text-gray-400">(Демо номер)</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Бутони за действие -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <button onclick="openBookingModal()"
+                            class="gold-btn text-black font-heading font-bold uppercase tracking-wider py-3.5 px-5 rounded-xl cursor-pointer flex items-center justify-center gap-2">
+                            <i class="fa-regular fa-calendar-check"></i>
+                            <span>Запази час</span>
+                        </button>
+                        <a href="tel:+359888000000"
+                            class="py-3.5 px-5 rounded-xl bg-darkCard hover:bg-darkSurface border border-white/15 text-white font-heading font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+                            <i class="fa-solid fa-phone-volume text-goldLight"></i>
+                            <span>Обади се сега</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Стилизирана интерактивна карта / схема на локацията -->
+                <div class="lg:col-span-7">
+                    <div class="h-full min-h-[360px] rounded-2xl bg-darkCard border border-white/10 overflow-hidden relative flex flex-col justify-between p-6 sm:p-8"
+                        style="background-image: radial-gradient(rgba(200, 155, 60, 0.12) 1px, transparent 1px); background-size: 24px 24px;">
+
+                        <!-- Стилизирана схема на квартала -->
+                        <div class="flex items-center justify-between z-10">
+                            <span
+                                class="px-3 py-1 rounded-full bg-darkBg/90 border border-goldPrimary/40 text-xs text-goldLight font-semibold">
+                                <i class="fa-solid fa-compass mr-1"></i> Интерактивна схема на района
+                            </span>
+                            <a href="https://www.google.com/maps/search/?api=1&query=43.2173262,27.9298355"
+                                target="_blank" rel="noopener noreferrer"
+                                class="px-3.5 py-1.5 rounded-lg bg-darkBg/90 hover:bg-goldPrimary hover:text-black border border-white/15 text-xs text-white font-medium transition-colors">
+                                Отвори в Google Maps <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+                            </a>
+                        </div>
+
+                        <!-- Централен пин на СТРИГАЛНИЦА -->
+                        <div class="my-auto py-8 flex flex-col items-center justify-center text-center relative z-10">
+                            <!-- Декоративни линии на улици -->
+                            <div
+                                class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 bg-white/[0.03] -rotate-6 pointer-events-none">
+                            </div>
+                            <div class="absolute inset-y-0 left-1/3 w-8 bg-white/[0.03] rotate-12 pointer-events-none">
+                            </div>
+
+                            <div class="relative">
+                                <div class="w-16 h-16 rounded-full bg-goldPrimary/25 animate-ping absolute inset-0">
+                                </div>
+                                <div
+                                    class="w-16 h-16 rounded-full bg-goldPrimary text-black flex items-center justify-center shadow-2xl relative z-10 border-4 border-darkBg">
+                                    <i class="fa-solid fa-scissors text-2xl"></i>
+                                </div>
+                            </div>
+
+                            <div
+                                class="mt-4 bg-darkBg/95 backdrop-blur-md border border-goldPrimary/40 rounded-xl px-6 py-4 shadow-2xl max-w-sm">
+                                <p class="font-heading text-xl font-bold text-white uppercase tracking-wider">
+                                    СТРИГАЛНИЦА</p>
+                                <p class="text-xs text-goldLight font-medium mt-0.5">ул. „Д-р Анастасия Желязкова“ 11,
+                                    Варна</p>
+                                <p class="text-xs text-gray-400 mt-2">В близост до бул. „Васил Левски“ и УМБАЛ „Св.
+                                    Марина“ / кв. Левски</p>
+                            </div>
+                        </div>
+
+                        <!-- Ориентири -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-gray-300 z-10">
+                            <div
+                                class="bg-darkBg/85 border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2">
+                                <i class="fa-solid fa-road text-goldLight"></i>
+                                <span>2 мин. от бул. Левски</span>
+                            </div>
+                            <div
+                                class="bg-darkBg/85 border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2">
+                                <i class="fa-solid fa-square-parking text-goldLight"></i>
+                                <span>Удобно паркиране</span>
+                            </div>
+                            <div
+                                class="bg-darkBg/85 border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2 col-span-2 sm:col-span-1">
+                                <i class="fa-solid fa-bus text-goldLight"></i>
+                                <span>Спирки наблизо</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. ФУТЪР -->
+    <footer class="bg-[#0B0B0B] border-t border-white/10 py-10">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <span class="font-heading text-xl font-bold tracking-wider text-white">СТРИГАЛНИЦА</span>
+                <span class="text-gray-600">|</span>
+                <span class="text-xs text-gray-400">ул. „Доктор Анастасия Желязкова“ 11, Варна</span>
+            </div>
+
+            <div class="text-center md:text-right space-y-1">
+                <p class="text-xs text-goldLight font-medium">
+                    СТИЛ • ПРЕЦИЗНОСТ • ГРИЖА ЗА КЛИЕНТА
+                </p>
+                <p class="text-xs text-gray-500">
+                    © 2026 СТРИГАЛНИЦА Варна. Всички права запазени.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 7. ИНТЕРАКТИВЕН МОДАЛ ЗА ОНЛАЙН РЕЗЕРВАЦИЯ (ДЕМО) -->
+    <div id="booking-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+        <div
+            class="relative w-full max-w-lg rounded-2xl bg-darkCard border border-goldPrimary/40 shadow-2xl modal-animate overflow-hidden my-8">
+            <!-- Горна лента на модала -->
+            <div class="h-1.5 w-full barber-pole-border"></div>
+
+            <div class="p-6 sm:p-8">
+                <!-- Заглавие и бутон за затваряне -->
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-goldLight font-semibold">Онлайн записване •
+                            Демо</span>
+                        <h3 class="font-heading text-2xl sm:text-3xl font-bold uppercase text-white mt-0.5">Запази своя
+                            час</h3>
+                    </div>
+                    <button onclick="closeBookingModal()" aria-label="Затвори"
+                        class="w-9 h-9 rounded-lg bg-darkSurface hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Форма за резервация -->
+                <form id="booking-form" onsubmit="handleBookingSubmit(event)" class="space-y-4">
+                    <!-- Избор на услуга -->
+                    <div>
+                        <label for="booking-service"
+                            class="block text-xs uppercase tracking-wider text-gray-300 font-semibold mb-1.5">
+                            1. Изберете услуга
+                        </label>
+                        <select id="booking-service" required
+                            class="w-full rounded-xl bg-darkSurface border border-white/15 px-4 py-3 text-sm text-white focus:outline-none focus:border-goldPrimary">
+                            <option value="Мъжко подстригване (30 мин. / 13 €)">Мъжко подстригване — 30 мин. / 13 €
+                            </option>
+                            <option value="Оформяне и поддръжка на брада с топла кърпа (25 мин. / 10 €)">Оформяне и
+                                поддръжка на брада с топла кърпа — 25 мин. / 10 €</option>
+                            <option value="Комбо: Коса + Брада (50 мин. / 20 €)">Комбо: Коса + Брада — 50 мин. / 20 €
+                            </option>
+                            <option value="Кралско бръснене с бръснач и пара (35 мин. / 10 €)">Кралско бръснене с
+                                бръснач и пара — 35 мин. / 10 €</option>
+                            <option value="Детско подстригване (25 мин. / 12 €)">Детско подстригване — 25 мин. / 12 €
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Избор на дата -->
+                    <div>
+                        <label for="booking-date"
+                            class="block text-xs uppercase tracking-wider text-gray-300 font-semibold mb-1.5">
+                            2. Изберете дата <span class="text-gray-500 font-normal normal-case">(Вторник –
+                                Неделя)</span>
+                        </label>
+                        <input type="date" id="booking-date" required
+                            class="w-full rounded-xl bg-darkSurface border border-white/15 px-4 py-3 text-sm text-white focus:outline-none focus:border-goldPrimary [color-scheme:dark]">
+                        <p id="date-warning" class="hidden text-xs text-amber-400 mt-1.5">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> В понеделник салонът почива. Моля,
+                            изберете ден от вторник до неделя.
+                        </p>
+                    </div>
+
+                    <!-- Избор на свободен час (бутони) -->
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-300 font-semibold mb-1.5">
+                            3. Свободни часове
+                        </label>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2" id="time-slots">
+                            <button type="button" onclick="selectTimeSlot(this, '10:00')"
+                                class="time-slot-btn py-2.5 rounded-lg bg-darkSurface border border-white/15 text-sm font-medium text-gray-200 hover:border-goldPrimary transition-all cursor-pointer">10:00</button>
+                            <button type="button" onclick="selectTimeSlot(this, '11:30')"
+                                class="time-slot-btn py-2.5 rounded-lg bg-goldPrimary text-black font-bold border border-goldPrimary text-sm transition-all cursor-pointer">11:30</button>
+                            <button type="button" onclick="selectTimeSlot(this, '14:00')"
+                                class="time-slot-btn py-2.5 rounded-lg bg-darkSurface border border-white/15 text-sm font-medium text-gray-200 hover:border-goldPrimary transition-all cursor-pointer">14:00</button>
+                            <button type="button" onclick="selectTimeSlot(this, '15:30')"
+                                class="time-slot-btn py-2.5 rounded-lg bg-darkSurface border border-white/15 text-sm font-medium text-gray-200 hover:border-goldPrimary transition-all cursor-pointer">15:30</button>
+                            <button type="button" onclick="selectTimeSlot(this, '16:30')"
+                                class="time-slot-btn py-2.5 rounded-lg bg-darkSurface border border-white/15 text-sm font-medium text-gray-200 hover:border-goldPrimary transition-all cursor-pointer">16:30</button>
+                            <button type="button" onclick="selectTimeSlot(this, '18:00')"
+                                class="time-slot-btn py-2.5 rounded-lg bg-darkSurface border border-white/15 text-sm font-medium text-gray-200 hover:border-goldPrimary transition-all cursor-pointer">18:00</button>
+                        </div>
+                        <input type="hidden" id="booking-time" value="11:30">
+                    </div>
+
+                    <!-- Име и телефон -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label for="booking-name"
+                                class="block text-xs uppercase tracking-wider text-gray-300 font-semibold mb-1.5">
+                                Вашето име
+                            </label>
+                            <input type="text" id="booking-name" required placeholder="напр. Иван Петров"
+                                class="w-full rounded-xl bg-darkSurface border border-white/15 px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-goldPrimary">
+                        </div>
+                        <div>
+                            <label for="booking-phone"
+                                class="block text-xs uppercase tracking-wider text-gray-300 font-semibold mb-1.5">
+                                Телефон
+                            </label>
+                            <input type="tel" id="booking-phone" required placeholder="0888 123 456"
+                                class="w-full rounded-xl bg-darkSurface border border-white/15 px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-goldPrimary">
+                        </div>
+                    </div>
+
+                    <!-- Бутон за потвърждение -->
+                    <div class="pt-3">
+                        <button type="submit"
+                            class="w-full gold-btn text-black font-heading font-bold uppercase tracking-wider text-base py-3.5 rounded-xl cursor-pointer shadow-lg">
+                            Потвърди резервацията
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Екран за успешно потвърждение (показва се след изпращане) -->
+                <div id="booking-confirmation" class="hidden text-center py-4 space-y-5">
+                    <div
+                        class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 flex items-center justify-center mx-auto text-3xl">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+
+                    <div>
+                        <span
+                            class="px-3 py-1 rounded-full bg-goldPrimary/15 text-goldLight text-xs font-semibold uppercase tracking-wider">
+                            Успешна демо резервация
+                        </span>
+                        <h4 class="font-heading text-2xl font-bold uppercase text-white mt-2">Часът ви е запазен!</h4>
+                        <p class="text-sm text-gray-400 mt-1">Очакваме ви в <strong
+                                class="text-white">СТРИГАЛНИЦА</strong> на ул. „Д-р Анастасия Желязкова“ 11, Варна.</p>
+                    </div>
+
+                    <!-- Обобщение на детайлите -->
+                    <div class="rounded-xl bg-darkSurface border border-white/10 p-4 text-left space-y-2.5 text-sm">
+                        <div class="flex justify-between border-b border-white/5 pb-2">
+                            <span class="text-gray-400">Клиент:</span>
+                            <span id="conf-name" class="font-semibold text-white"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/5 pb-2">
+                            <span class="text-gray-400">Телефон:</span>
+                            <span id="conf-phone" class="font-semibold text-white"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/5 pb-2">
+                            <span class="text-gray-400">Услуга:</span>
+                            <span id="conf-service"
+                                class="font-semibold text-goldLight text-right max-w-[230px]"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Дата и час:</span>
+                            <span id="conf-datetime" class="font-bold text-white"></span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button type="button" onclick="resetBookingModal()"
+                            class="flex-1 py-3 px-4 rounded-xl bg-darkSurface hover:bg-white/10 border border-white/15 text-sm font-semibold text-white transition-colors cursor-pointer">
+                            Нова резервация
+                        </button>
+                        <button type="button" onclick="closeBookingModal()"
+                            class="flex-1 gold-btn text-black font-heading font-bold uppercase tracking-wider py-3 px-4 rounded-xl cursor-pointer">
+                            Готово
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <p class="footer-bottom">Малко приключение, направено с обич. Наслади му се със собствено темпо.</p>
-  </main>
 
-  <script>
-    (() => {
-      const canvas = document.getElementById("town");
-      const ctx = canvas.getContext("2d");
-      const hint = document.getElementById("hint");
-      const hintText = document.getElementById("hint-text");
-      const backdrop = document.getElementById("dialog-backdrop");
-      const dialogName = document.getElementById("dialog-name");
-      const dialogText = document.getElementById("dialog-text");
-      const dialogOptions = document.getElementById("dialog-options");
-      const keys = new Set();
-      const W = 960;
-      const H = 640;
-      const player = { x: 476, y: 465, speed: 205, facing: "down", walk: 0 };
-      const berries = [
-        { x: 330, y: 355, found: false },
-        { x: 404, y: 286, found: false },
-        { x: 625, y: 445, found: false }
-      ];
-      const quests = { milo: false, ivy: false, pip: false, miloStarted: false, festival: false };
-      const neighbors = [
-        { id: "milo", name: "Мило · Пекар", x: 229, y: 237, color: "#cb8663", hair: "#574238", emoji: "🥖", location: "До пекарната" },
-        { id: "ivy", name: "Айви · Градинарка", x: 708, y: 223, color: "#d18b9b", hair: "#5c6744", emoji: "🌷", location: "В градината" },
-        { id: "pip", name: "Пип · Музикант", x: 747, y: 453, color: "#8295ad", hair: "#544637", emoji: "🎻", location: "До върбата" }
-      ];
-      const buildings = [
-        { x: 95, y: 104, w: 190, h: 123, wall: "#e9c99a", roof: "#b86f58", sign: "ПЕКАРНА", icon: "🥐" },
-        { x: 646, y: 91, w: 180, h: 123, wall: "#e8d7a8", roof: "#85966e", sign: "ОБЩИНСКА ГРАДИНА", icon: "🌼" },
-        { x: 88, y: 418, w: 177, h: 112, wall: "#d6c6ad", roof: "#95846f", sign: "КНИЖАРНИЦА", icon: "📚" }
-      ];
-      const obstacles = buildings.map(({ x, y, w, h }) => ({ x: x - 3, y: y - 10, w: w + 6, h: h + 18 }));
-      const flowers = Array.from({ length: 44 }, (_, i) => ({
-        x: 18 + ((i * 197 + 47) % 924),
-        y: 18 + ((i * 113 + 89) % 604),
-        color: ["#f6d875", "#f2aeb0", "#fff3d4", "#c5a5d6"][i % 4]
-      }));
-      let activeDialog = false;
-      let nearby = null;
-      let lastTime = 0;
+    <!-- JAVASCRIPT ЛОГИКА -->
+    <script>
+        // Данни за услугите на СТРИГАЛНИЦА
+        const servicesData = [
+            {
+                id: 1,
+                title: "Мъжко подстригване",
+                category: "hair",
+                duration: "30 мин.",
+                price: "13 €",
+                badge: "Най-търсено",
+                description: "Класическо или модерно подстригване (вкл. Skin Fade), измиване и оформяне със стилизант.",
+                fullOptionValue: "Мъжко подстригване (30 мин. / 13 €)"
+            },
+            {
+                id: 2,
+                title: "Оформяне и поддръжка на брада с топла кърпа",
+                category: "beard",
+                duration: "25 мин.",
+                price: "10 €",
+                badge: null,
+                description: "Прецизно оформяне с машинка и бръснач, релаксираща топла кърпа и подхранващо масло.",
+                fullOptionValue: "Оформяне и поддръжка на брада с топла кърпа (25 мин. / 10 €)"
+            },
+            {
+                id: 3,
+                title: "Комбо: Коса + Брада",
+                category: "combo",
+                duration: "50 мин.",
+                price: "20 €",
+                badge: "Спестяваш 2,50 €",
+                description: "Пълна трансформация — мъжко подстригване и ритуал за оформяне на брада с топла кърпа.",
+                fullOptionValue: "Комбо: Коса + Брада (50 мин. / 20 €)"
+            },
+            {
+                id: 4,
+                title: "Кралско бръснене с бръснач и пара",
+                category: "beard",
+                duration: "35 мин.",
+                price: "10 €",
+                badge: "Ритуал",
+                description: "Традиционно гладко бръснене с пара, горещи кърпи, нежен масаж и успокояващ афтършейв.",
+                fullOptionValue: "Кралско бръснене с бръснач и пара (35 мин. / 10 €)"
+            },
+            {
+                id: 5,
+                title: "Детско подстригване",
+                category: "hair",
+                duration: "25 мин.",
+                price: "12 €",
+                badge: null,
+                description: "Стилна и удобна прическа за малки джентълмени в спокойна и приятелска атмосфера.",
+                fullOptionValue: "Детско подстригване (25 мин. / 12 €)"
+            }
+        ];
 
-      function roundedRect(x, y, w, h, r) {
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + w - r, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-        ctx.lineTo(x + w, y + h - r);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        ctx.lineTo(x + r, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-        ctx.lineTo(x, y + r);
-        ctx.quadraticCurveTo(x, y, x + r, y);
-        ctx.closePath();
-      }
+        // Рендиране на картите с услуги
+        function renderServices(filter = 'all') {
+            const grid = document.getElementById('services-grid');
+            grid.innerHTML = '';
 
-      function drawBuilding(building) {
-        const { x, y, w, h, wall, roof, sign, icon } = building;
-        ctx.fillStyle = "rgba(70, 87, 58, .12)";
-        roundedRect(x + 5, y + 8, w, h, 11);
-        ctx.fill();
-        ctx.fillStyle = wall;
-        roundedRect(x, y + 13, w, h - 13, 9);
-        ctx.fill();
-        ctx.fillStyle = roof;
-        ctx.beginPath();
-        ctx.moveTo(x - 9, y + 22);
-        ctx.lineTo(x + w / 2, y - 13);
-        ctx.lineTo(x + w + 9, y + 22);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = "rgba(255, 250, 231, .75)";
-        roundedRect(x + 10, y + 28, w - 20, 17, 7);
-        ctx.fill();
-        ctx.fillStyle = "#5b5c48";
-        ctx.font = "700 8px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(sign, x + w / 2, y + 40);
-        ctx.fillStyle = "#fff2cc";
-        roundedRect(x + w / 2 - 16, y + h - 47, 32, 45, 8);
-        ctx.fill();
-        ctx.fillStyle = "rgba(91, 93, 68, .28)";
-        ctx.fillRect(x + w / 2, y + h - 47, 1.5, 45);
-        ctx.fillStyle = "rgba(255, 253, 237, .8)";
-        roundedRect(x + 19, y + 58, 31, 28, 5);
-        ctx.fill();
-        roundedRect(x + w - 50, y + 58, 31, 28, 5);
-        ctx.fill();
-        ctx.fillStyle = "#fff7e2";
-        ctx.font = "16px system-ui, sans-serif";
-        ctx.fillText(icon, x + w / 2, y + 67);
-      }
+            const filtered = filter === 'all'
+                ? servicesData
+                : servicesData.filter(s => s.category === filter);
 
-      function drawTree(x, y, scale = 1) {
-        ctx.fillStyle = "rgba(69, 92, 54, .12)";
-        ctx.beginPath();
-        ctx.ellipse(x + 3, y + 22 * scale, 22 * scale, 8 * scale, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#866c50";
-        roundedRect(x - 4 * scale, y - 1 * scale, 8 * scale, 28 * scale, 4 * scale);
-        ctx.fill();
-        ctx.fillStyle = "#78946a";
-        ctx.beginPath();
-        ctx.arc(x, y - 13 * scale, 22 * scale, 0, Math.PI * 2);
-        ctx.arc(x - 14 * scale, y - 6 * scale, 14 * scale, 0, Math.PI * 2);
-        ctx.arc(x + 14 * scale, y - 6 * scale, 14 * scale, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "rgba(255,255,255,.13)";
-        ctx.beginPath();
-        ctx.arc(x - 6 * scale, y - 20 * scale, 8 * scale, 0, Math.PI * 2);
-        ctx.fill();
-      }
+            filtered.forEach(service => {
+                const badgeHtml = service.badge
+                    ? `<span class="px-2.5 py-0.5 rounded-full bg-goldPrimary/20 border border-goldPrimary/40 text-goldLight text-[11px] font-semibold uppercase tracking-wider">${service.badge}</span>`
+                    : '';
 
-      function drawPaths() {
-        ctx.lineCap = "round";
-        ctx.strokeStyle = "#d8cba8";
-        ctx.lineWidth = 62;
-        ctx.beginPath();
-        ctx.moveTo(24, 321);
-        ctx.bezierCurveTo(228, 321, 302, 345, 478, 325);
-        ctx.bezierCurveTo(665, 304, 768, 322, 936, 320);
-        ctx.moveTo(478, 188);
-        ctx.bezierCurveTo(459, 282, 498, 364, 476, 470);
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(255, 247, 220, .48)";
-        ctx.lineWidth = 3;
-        ctx.setLineDash([5, 11]);
-        ctx.beginPath();
-        ctx.moveTo(24, 321);
-        ctx.bezierCurveTo(228, 321, 302, 345, 478, 325);
-        ctx.bezierCurveTo(665, 304, 768, 322, 936, 320);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
+                const card = document.createElement('div');
+                card.className = 'p-6 rounded-2xl bg-darkCard border border-white/10 hover:border-goldPrimary/50 transition-all flex flex-col justify-between gap-4';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-3">
+                            <h3 class="font-heading text-xl sm:text-2xl font-bold text-white uppercase tracking-wide">${service.title}</h3>
+                            <div class="text-right shrink-0">
+                                <span class="font-heading text-2xl font-bold text-goldLight block leading-none">${service.price}</span>
+                                <span class="text-xs text-gray-400 mt-1 block"><i class="fa-regular fa-clock mr-1"></i>${service.duration}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex items-center gap-2">
+                            ${badgeHtml}
+                        </div>
+                        <p class="text-gray-400 text-sm mt-3 leading-relaxed">${service.description}</p>
+                    </div>
+                    <div class="pt-3 border-t border-white/5 flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Вкл. измиване и стайлинг</span>
+                        <button onclick="openBookingModal('${service.fullOptionValue}')" class="px-4 py-2 rounded-lg bg-goldPrimary/15 hover:bg-goldPrimary text-goldLight hover:text-black border border-goldPrimary/40 font-heading font-bold uppercase text-xs tracking-wider transition-all cursor-pointer flex items-center gap-1.5">
+                            <span>Избери</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-      function drawPond() {
-        ctx.fillStyle = "rgba(64, 107, 96, .12)";
-        ctx.beginPath();
-        ctx.ellipse(493, 414, 120, 61, -.08, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#83b9b0";
-        ctx.beginPath();
-        ctx.ellipse(490, 405, 116, 56, -.08, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(238, 251, 224, .52)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.ellipse(476, 397, 79, 32, -.08, .3, 2.4);
-        ctx.stroke();
-        ctx.fillStyle = "#79946b";
-        [[380,390],[594,404],[409,451],[573,365]].forEach(([x,y]) => {
-          ctx.beginPath();
-          ctx.ellipse(x, y, 13, 5, -.4, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(x + 5, y - 3, 3, 0, Math.PI * 2);
-          ctx.fill();
+        // Филтриране на табовете в ценоразписа
+        function filterServices(category) {
+            document.querySelectorAll('.service-tab').forEach(btn => {
+                btn.classList.remove('bg-goldPrimary', 'text-black');
+                btn.classList.add('bg-darkCard', 'text-gray-300', 'border', 'border-white/10');
+            });
+
+            const activeBtn = document.getElementById(`tab-${category}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-darkCard', 'text-gray-300', 'border', 'border-white/10');
+                activeBtn.classList.add('bg-goldPrimary', 'text-black');
+            }
+
+            renderServices(category);
+        }
+
+        // Мобилно меню
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const button = document.getElementById('mobile-menu-btn');
+            menu.classList.toggle('hidden');
+            const isOpen = !menu.classList.contains('hidden');
+            button.setAttribute('aria-expanded', String(isOpen));
+            button.setAttribute('aria-label', isOpen ? 'Затвори менюто' : 'Отвори менюто');
+            button.innerHTML = isOpen
+                ? '<i class="fa-solid fa-xmark text-xl"></i>'
+                : '<i class="fa-solid fa-bars text-xl"></i>';
+        }
+
+        // Задаване на начална валидна дата (утре или следващ работен ден, без понеделник)
+        function setDefaultBookingDate() {
+            const dateInput = document.getElementById('booking-date');
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+
+            // Ако утре е понеделник (day === 1), прескачаме към вторник
+            if (tomorrow.getDay() === 1) {
+                tomorrow.setDate(tomorrow.getDate() + 1);
+            }
+
+            const yyyy = tomorrow.getFullYear();
+            const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const dd = String(tomorrow.getDate()).padStart(2, '0');
+            const formatted = `${yyyy}-${mm}-${dd}`;
+
+            const minToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            dateInput.min = minToday;
+            dateInput.value = formatted;
+        }
+
+        // Проверка за понеделник при смяна на датата
+        document.getElementById('booking-date').addEventListener('change', function () {
+            const selectedDate = new Date(this.value + 'T12:00:00');
+            const warning = document.getElementById('date-warning');
+            if (selectedDate.getDay() === 1) {
+                warning.classList.remove('hidden');
+            } else {
+                warning.classList.add('hidden');
+            }
         });
-      }
 
-      function drawPerson(npc) {
-        const bob = Math.sin(npc.x + performance.now() / 460) * 1.5;
-        ctx.save();
-        ctx.translate(npc.x, npc.y + bob);
-        ctx.fillStyle = "rgba(59, 68, 46, .14)";
-        ctx.beginPath();
-        ctx.ellipse(0, 15, 15, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = npc.color;
-        roundedRect(-11, -9, 22, 24, 8);
-        ctx.fill();
-        ctx.fillStyle = "#f4d0b1";
-        ctx.beginPath();
-        ctx.arc(0, -17, 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = npc.hair;
-        ctx.beginPath();
-        ctx.arc(0, -20, 10, Math.PI, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(-7, -16, 4, .5 * Math.PI, 1.5 * Math.PI);
-        ctx.fill();
-        ctx.fillStyle = "#4b5145";
-        ctx.beginPath();
-        ctx.arc(-3, -17, 1, 0, Math.PI * 2);
-        ctx.arc(3, -17, 1, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-        ctx.font = "700 10px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "rgba(255, 253, 247, .9)";
-        roundedRect(npc.x - 42, npc.y - 52, 84, 19, 8);
-        ctx.fill();
-        ctx.fillStyle = "#52614d";
-        ctx.fillText(npc.name.split(" · ")[0], npc.x, npc.y - 39);
-      }
+        // Избор на часови слот
+        function selectTimeSlot(btn, time) {
+            document.querySelectorAll('.time-slot-btn').forEach(b => {
+                b.classList.remove('bg-goldPrimary', 'text-black', 'font-bold', 'border-goldPrimary');
+                b.classList.add('bg-darkSurface', 'text-gray-200', 'border-white/15');
+            });
+            btn.classList.remove('bg-darkSurface', 'text-gray-200', 'border-white/15');
+            btn.classList.add('bg-goldPrimary', 'text-black', 'font-bold', 'border-goldPrimary');
+            document.getElementById('booking-time').value = time;
+        }
 
-      function drawPlayer() {
-        const bob = Math.sin(player.walk * 13) * 1.8;
-        ctx.save();
-        ctx.translate(player.x, player.y + bob);
-        ctx.fillStyle = "rgba(56, 63, 45, .17)";
-        ctx.beginPath();
-        ctx.ellipse(0, 14, 14, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#6c8090";
-        roundedRect(-10, -9, 20, 23, 8);
-        ctx.fill();
-        ctx.fillStyle = "#f2c9a7";
-        ctx.beginPath();
-        ctx.arc(0, -17, 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#59483c";
-        ctx.beginPath();
-        ctx.arc(0, -20, 10, Math.PI, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#4e5143";
-        ctx.beginPath();
-        ctx.arc(-3, -17, 1, 0, Math.PI * 2);
-        ctx.arc(3, -17, 1, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
+        // Отваряне на модала за резервация
+        function openBookingModal(preselectedService = null) {
+            const modal = document.getElementById('booking-modal');
+            const select = document.getElementById('booking-service');
 
-      function drawBerry(berry, index) {
-        if (berry.found) return;
-        const bob = Math.sin(performance.now() / 300 + index * 2) * 2;
-        ctx.fillStyle = "rgba(76, 80, 46, .15)";
-        ctx.beginPath();
-        ctx.ellipse(berry.x, berry.y + 5, 12, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#b8615d";
-        ctx.beginPath();
-        ctx.arc(berry.x, berry.y + bob, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#78946a";
-        ctx.beginPath();
-        ctx.ellipse(berry.x + 4, berry.y - 7 + bob, 5, 2, -.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
+            resetBookingModal();
 
-      function drawFestivalArch() {
-        const x = 432, y = 272;
-        ctx.fillStyle = "#8b7656";
-        roundedRect(x, y, 9, 48, 4); ctx.fill();
-        roundedRect(x + 88, y, 9, 48, 4); ctx.fill();
-        ctx.strokeStyle = "#8b7656";
-        ctx.lineWidth = 8;
-        ctx.beginPath();
-        ctx.arc(x + 48, y + 4, 45, Math.PI, 0);
-        ctx.stroke();
-        ctx.font = "20px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("🏮", x + 17, y + 5);
-        ctx.fillText("🏮", x + 80, y + 5);
-      }
+            if (preselectedService) {
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value.includes(preselectedService) || select.options[i].text.includes(preselectedService)) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
 
-      function draw() {
-        ctx.clearRect(0, 0, W, H);
-        ctx.fillStyle = "#b8ce9e";
-        ctx.fillRect(0, 0, W, H);
-        flowers.forEach((flower, i) => {
-          if (flower.x > 310 && flower.x < 625 && flower.y > 260 && flower.y < 475) return;
-          ctx.globalAlpha = .72;
-          ctx.fillStyle = flower.color;
-          ctx.beginPath();
-          ctx.arc(flower.x, flower.y, i % 4 === 0 ? 2.4 : 1.7, 0, Math.PI * 2);
-          ctx.fill();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Затваряне на модала
+        function closeBookingModal() {
+            const modal = document.getElementById('booking-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        // Връщане на формата в начален вид
+        function resetBookingModal() {
+            document.getElementById('booking-form').classList.remove('hidden');
+            document.getElementById('booking-confirmation').classList.add('hidden');
+            document.getElementById('booking-form').reset();
+            document.getElementById('booking-time').value = '11:30';
+            selectTimeSlot(document.querySelector('.time-slot-btn:nth-child(2)'), '11:30');
+            setDefaultBookingDate();
+        }
+
+        // Обработка на потвърждението за резервация
+        function handleBookingSubmit(event) {
+            event.preventDefault();
+
+            const service = document.getElementById('booking-service').value;
+            const dateRaw = document.getElementById('booking-date').value;
+            const time = document.getElementById('booking-time').value;
+            const name = document.getElementById('booking-name').value.trim();
+            const phone = document.getElementById('booking-phone').value.trim();
+
+            if (dateRaw) {
+                const selectedDate = new Date(dateRaw + 'T12:00:00');
+                if (selectedDate.getDay() === 1) {
+                    document.getElementById('date-warning').classList.remove('hidden');
+                    document.getElementById('booking-date').focus();
+                    return;
+                }
+            }
+
+            // Форматиране на датата в български формат (ДД.ММ.ГГГГ)
+            const [year, month, day] = dateRaw.split('-');
+            const formattedDate = `${day}.${month}.${year} г.`;
+
+            document.getElementById('conf-name').textContent = name;
+            document.getElementById('conf-phone').textContent = phone;
+            document.getElementById('conf-service').textContent = service;
+            document.getElementById('conf-datetime').textContent = `${formattedDate} в ${time} ч.`;
+
+            document.getElementById('booking-form').classList.add('hidden');
+            document.getElementById('booking-confirmation').classList.remove('hidden');
+        }
+
+        // Затваряне на модала при клик извън кутията или с Escape
+        document.getElementById('booking-modal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeBookingModal();
+            }
         });
-        ctx.globalAlpha = 1;
-        drawPaths();
-        drawPond();
-        drawFestivalArch();
-        buildings.forEach(drawBuilding);
-        drawTree(316, 205, .88);
-        drawTree(616, 266, .75);
-        drawTree(322, 465, .9);
-        drawTree(852, 250, 1);
-        drawTree(880, 511, .92);
-        drawTree(58, 256, .8);
-        berries.forEach(drawBerry);
-        neighbors.forEach(drawPerson);
-        drawPlayer();
-      }
 
-      function blocked(x, y) {
-        if (x < 19 || x > W - 19 || y < 24 || y > H - 20) return true;
-        if (((x - 490) / 106) ** 2 + ((y - 405) / 49) ** 2 < 1) return true;
-        return obstacles.some(rect => x + 10 > rect.x && x - 10 < rect.x + rect.w && y + 11 > rect.y && y - 9 < rect.y + rect.h);
-      }
-
-      function getNearby() {
-        let closest = null;
-        let distance = 55;
-        for (const npc of neighbors) {
-          const d = Math.hypot(npc.x - player.x, npc.y - player.y);
-          if (d < distance) { closest = { type: "neighbor", item: npc }; distance = d; }
-        }
-        berries.forEach((berry, index) => {
-          if (berry.found) return;
-          const d = Math.hypot(berry.x - player.x, berry.y - player.y);
-          if (d < distance) { closest = { type: "berry", item: berry, index }; distance = d; }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeBookingModal();
+            }
         });
-        if (quests.milo && quests.ivy && quests.pip && !quests.festival) {
-          const d = Math.hypot(480 - player.x, 294 - player.y);
-          if (d < distance) closest = { type: "festival", item: null };
-        }
-        return closest;
-      }
 
-      function showDialog(name, text, options) {
-        activeDialog = true;
-        hint.hidden = true;
-        dialogName.textContent = name;
-        dialogText.textContent = text;
-        dialogOptions.replaceChildren();
-        options.forEach(option => {
-          const button = document.createElement("button");
-          button.className = "choice-button";
-          button.type = "button";
-          button.textContent = option.label;
-          button.addEventListener("click", () => option.action());
-          dialogOptions.append(button);
+        // Инициализация при зареждане
+        window.addEventListener('DOMContentLoaded', () => {
+            renderServices('all');
+            setDefaultBookingDate();
         });
-        backdrop.hidden = false;
-        const firstButton = dialogOptions.querySelector("button");
-        if (firstButton) firstButton.focus();
-      }
-
-      function closeDialog() {
-        activeDialog = false;
-        backdrop.hidden = true;
-        updateNearby();
-      }
-
-      function simpleDialog(name, text, buttonLabel = "Благодаря!") {
-        showDialog(name, text, [{ label: buttonLabel, action: closeDialog }]);
-      }
-
-      function talkToMilo() {
-        if (quests.milo) {
-          simpleDialog("Мило · Пекар", "От тези плодове стана чудесно сладко. Вземи едно малко бурканче за из път — моята рецепта за спомен от дома.", "Колко мило!");
-        } else if (!quests.miloStarted) {
-          showDialog("Мило · Пекар", "Здравей! Пека кифлички с плодове за фестивала на фенерите, но не ми стигат. Ще потърсиш ли още три по селските пътеки?", [
-            { label: "С удоволствие ще помогна", action: () => { quests.miloStarted = true; updateQuests(); simpleDialog("Мило · Пекар", "Чудесно! Плодовете се забелязват лесно край пътеките — приближи се до някой и натисни E.", "Тръгвам!") } },
-            { label: "Може би след малко", action: closeDialog }
-          ]);
-        } else if (berries.every(berry => berry.found)) {
-          quests.milo = true;
-          updateQuests();
-          simpleDialog("Мило · Пекар", "Три чудесни плодчета! Цялата пекарна ухае на лято. Благодаря ти, приятелю. Вземи си топла кифличка за из път.", "Ммм, благодаря!");
-        } else {
-          const count = berries.filter(berry => berry.found).length;
-          simpleDialog("Мило · Пекар", `Справяш се чудесно — намери ${count} от 3 плодчета. Потърси край пътеките и езерцето.`, "Ще продължа да търся");
-        }
-      }
-
-      function talkToIvy() {
-        if (quests.ivy) {
-          simpleDialog("Айви · Градинарка", "Цветята са готови, а сърцето ми също. Странно как един малък въпрос може да ти припомни кое е важно.", "Така си е");
-          return;
-        }
-        showDialog("Айви · Градинарка", "Подготвям разсад за тази вечер. Една малка градинска гатанка: от какво има нужда всяко семенце, за да покълне и порасне?", [
-          { label: "Малко слънчева светлина", action: () => { quests.ivy = true; updateQuests(); simpleDialog("Айви · Градинарка", "Точно така! И от малко доброта. Май имаш сърце на градинар.", "Радвам се, че се отбих") } },
-          { label: "От лъскаво камъче", action: () => simpleDialog("Айви · Градинарка", "Чудесно съкровище, но не съвсем. Помисли какво сгрява почвата в пролетна утрин.", "Нека помисля") },
-          { label: "От снежна буря", action: () => simpleDialog("Айви · Градинарка", "Градината ще е красива, но на разсада ще му е студено! Какво носи топлина?", "Още един опит") }
-        ]);
-      }
-
-      function talkToPip() {
-        if (quests.pip) {
-          simpleDialog("Пип · Музикант", "Вече намерих мелодията. Звучи ми като място, което познаваш наизуст, нали?", "Точно така");
-          return;
-        }
-        showDialog("Пип · Музикант", "Търся първата нота за песента тази вечер. Какво чуваш, когато си помислиш за дома?", [
-          { label: "Смях около масата", action: () => finishPip("laughter") },
-          { label: "Дъжд по покрива", action: () => finishPip("rain") },
-          { label: "Селската камбана по залез", action: () => finishPip("bell") }
-        ]);
-      }
-
-      function finishPip(memory) {
-        quests.pip = true;
-        quests.memory = memory;
-        updateQuests();
-        const reply = memory === "laughter" ? "Колко хубав звук, който да носиш със себе си. Мисля, че вече знам мелодията." : memory === "rain" ? "Толкова нежен ритъм. Мисля, че вече знам как трябва да започне песента." : "Познат звук, точно навреме. Песента сама ни намери.";
-        simpleDialog("Пип · Музикант", reply, "Нямам търпение да я чуя");
-      }
-
-      function startFestival() {
-        const memory = quests.memory;
-        const memoryText = memory === "laughter" ? "В пекарната на Мило се разнася смях, докато всички си поделят топли кифлички с плодове." : memory === "rain" ? "Пада тих дъжд и цялото село слуша заедно под върбата." : "Селската камбана зазвънява и познати лица се събират в светлината на фенерите.";
-        showDialog("Фестивалът на фенерите", "Всички фенери в Уилоумър греят. Селото вече ти се струва малко повече като дом. Как искаш да прекараш последните мигове на деня?", [
-          { label: "Да остана за приказките", action: () => finishFestival(`Оставаш под фенерите и разказваш истории до високо изгрялата луна. ${memoryText} Когато тръгваш, пътят напред вече не ти се струва толкова самотен.`) },
-          { label: "Тиха разходка край езерцето", action: () => finishFestival(`Разхождаш се край езерцето, където фенерите блещукат като паднали звезди. ${memoryText} Отнасяш със себе си тихата топлина на Уилоумър.`) }
-        ]);
-      }
-
-      function finishFestival(ending) {
-        quests.festival = true;
-        showDialog("Малко повече като у дома", ending, [
-          { label: "Да се поразходя още", action: closeDialog },
-          { label: "Нова история", action: restart }
-        ]);
-      }
-
-      function restart() {
-        quests.milo = false;
-        quests.ivy = false;
-        quests.pip = false;
-        quests.miloStarted = false;
-        quests.festival = false;
-        delete quests.memory;
-        berries.forEach(berry => { berry.found = false; });
-        player.x = 476;
-        player.y = 465;
-        updateQuests();
-        closeDialog();
-        simpleDialog("Нов следобед", "Фестивалът започва отново. Селските пътеки те очакват.", "Да тръгваме");
-      }
-
-      function interact() {
-        if (activeDialog) return;
-        nearby = getNearby();
-        if (!nearby) return;
-        if (nearby.type === "berry") {
-          nearby.item.found = true;
-          updateQuests();
-          simpleDialog("Шепа плодове", "Намери узряло плодче, още стоплено от следобедното слънце.", "В кошницата!");
-        } else if (nearby.type === "festival") {
-          startFestival();
-        } else if (nearby.item.id === "milo") {
-          talkToMilo();
-        } else if (nearby.item.id === "ivy") {
-          talkToIvy();
-        } else if (nearby.item.id === "pip") {
-          talkToPip();
-        }
-      }
-
-      function updateQuests() {
-        const done = [quests.milo, quests.ivy, quests.pip].filter(Boolean).length;
-        document.getElementById("quest-count").textContent = `${done} / 3`;
-        setQuest("milo", quests.milo, quests.miloStarted ? "В ход" : "Не е започнато",
-          quests.milo ? "Мило вече има всичко необходимо за фестивалните кифлички." :
-          quests.miloStarted ? `Намерени са ${berries.filter(berry => berry.found).length} от 3 плодчета · Говори с Мило, когато кошницата ти се напълни.` : "Намери Мило до пекарната. Може да има нужда от помощ.",
-          quests.milo ? 100 : quests.miloStarted ? berries.filter(berry => berry.found).length / 3 * 100 : 0);
-        setQuest("ivy", quests.ivy, quests.ivy ? "Готово" : "Не е започнато", quests.ivy ? "Реши градинската гатанка на Айви." : "Намери Айви в общинската градина.");
-        setQuest("pip", quests.pip, quests.pip ? "Готово" : "Не е започнато", quests.pip ? "Пип откри първата нота за фестивалната песен." : "Намери Пип до старата върба.");
-      }
-
-      function setQuest(id, done, state, description, progress = 0) {
-        document.getElementById(`quest-${id}`).classList.toggle("done", done);
-        document.getElementById(`quest-${id}`).classList.toggle("active", !done && state !== "Не е започнато");
-        document.getElementById(`state-${id}`).textContent = state;
-        document.getElementById(`desc-${id}`).textContent = description;
-        const bar = document.getElementById(`progress-${id}`);
-        if (bar) bar.style.width = `${progress}%`;
-      }
-
-      function updateNearby() {
-        nearby = getNearby();
-        if (activeDialog || !nearby) {
-          hint.hidden = true;
-          if (!activeDialog) document.getElementById("location").textContent = "Разгледай наоколо";
-          return;
-        }
-        hint.hidden = false;
-        if (nearby.type === "berry") hintText.textContent = "Вземи плодче";
-        else if (nearby.type === "festival") hintText.textContent = "Присъедини се към фестивала";
-        else hintText.textContent = `Говори с ${nearby.item.name.split(" · ")[0]}`;
-        if (nearby.type === "neighbor") document.getElementById("location").textContent = nearby.item.location;
-        else if (nearby.type === "festival") document.getElementById("location").textContent = "Фестивалният площад";
-        else if (nearby.type === "berry") document.getElementById("location").textContent = "По селската пътека";
-      }
-
-      function update(dt) {
-        if (activeDialog) return;
-        const dx = (keys.has("ArrowRight") || keys.has("d") || keys.has("D") ? 1 : 0) - (keys.has("ArrowLeft") || keys.has("a") || keys.has("A") ? 1 : 0);
-        const dy = (keys.has("ArrowDown") || keys.has("s") || keys.has("S") ? 1 : 0) - (keys.has("ArrowUp") || keys.has("w") || keys.has("W") ? 1 : 0);
-        if (dx || dy) {
-          const length = Math.hypot(dx, dy);
-          const moveX = dx / length * player.speed * dt;
-          const moveY = dy / length * player.speed * dt;
-          if (!blocked(player.x + moveX, player.y)) player.x += moveX;
-          if (!blocked(player.x, player.y + moveY)) player.y += moveY;
-          player.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
-          player.walk += dt;
-        }
-        updateNearby();
-      }
-
-      function frame(now) {
-        const dt = Math.min((now - lastTime) / 1000, .04);
-        lastTime = now;
-        update(dt);
-        draw();
-        requestAnimationFrame(frame);
-      }
-
-      function resize() {
-        const rect = canvas.getBoundingClientRect();
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = Math.round(rect.width * dpr);
-        canvas.height = Math.round(rect.height * dpr);
-        ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
-        draw();
-      }
-
-      window.addEventListener("keydown", event => {
-        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) event.preventDefault();
-        if ((event.key === "e" || event.key === "E" || event.key === " ") && !event.repeat) {
-          if (activeDialog) {
-            const button = dialogOptions.querySelector("button");
-            if (button) button.click();
-          } else interact();
-          return;
-        }
-        keys.add(event.key);
-      });
-      window.addEventListener("keyup", event => keys.delete(event.key));
-      window.addEventListener("blur", () => keys.clear());
-      document.querySelectorAll("[data-key]").forEach(button => {
-        const key = button.dataset.key;
-        button.addEventListener("pointerdown", event => { event.preventDefault(); keys.add(key); });
-        ["pointerup", "pointercancel", "pointerleave"].forEach(type => button.addEventListener(type, () => keys.delete(key)));
-      });
-      document.getElementById("interact-button").addEventListener("click", interact);
-      window.addEventListener("resize", resize);
-      updateQuests();
-      resize();
-      showDialog("Добре дошъл в Уилоумър", "Пристигна точно навреме за фестивала на фенерите. Разходи се из селото, запознай се със съседите и им помогни. Няма защо да бързаш.", [
-        { label: "Да разгледаме наоколо", action: closeDialog }
-      ]);
-      requestAnimationFrame(frame);
-    })();
-  </script>
+    </script>
 </body>
+
 </html>
